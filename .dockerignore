@@ -1,0 +1,6 @@
+# Python & Virtual Environments
+.venv/
+**/__pycache__/
+**/*.py[cod]
+.pytest_cache/
+.git/
