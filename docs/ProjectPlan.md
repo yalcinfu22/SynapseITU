@@ -11,7 +11,7 @@
 | **Group members** | Yavuz Selim Yağlıca — 150220103, Furkan Yalçın — 150220116, Ahmed Said Gülşen — 150220044, Ahmet Yusuf Kurukız — 150240716, Najib Attar — 150220905, Amr Naweel Zuhdi Taweel — 150220937 |
 | **Instructor** | Assoc. Prof. Dr. Ayşe Tosun |
 | **Submission date** | 2026-10-25 |
-| **Document version** | 1.0 |
+| **Document version** | 1.1 baseline (2026-11-07) + Issue 3 numerical amendment (2026-11-08; v1.0 submitted 2026-10-25) |
 | **Repository** | https://github.com/yalcinfu22/SynapseITU |
 
 ---
@@ -32,7 +32,7 @@ Students and early-career researchers struggle to find research opportunities th
 - **AI knowledge search:** an AI search over past questions and discussions that returns answer snippets, each linked to its post.
 - **University chatbot:** a chat in Turkish or English that helps students find suitable opportunities and graduate programs; it answers only from platform data, asks a clarifying question when a request is vague and links every answer to its source.
 - **Credits:** credits for upvoted and accepted answers, with no self-voting; boosting a question with credits, which go to the author of the accepted answer; credits for a complete profile and for posts by verified users, extra CV Adaptor runs for credits, and a monthly AI limit.
-- **Notifications:** in-app notifications for application status, answers, interest requests and deadlines; e-mail delivery is optional (WBS-12.2).
+- **Notifications:** in-app notifications for application status, answers, interest requests, deadlines and the additional events of WBS-12.1; e-mail delivery is optional (WBS-12.2).
 - **University data agent:** collects the programs, labs and positions of universities on a schedule (the dummy university's API and public university program pages) and keeps the database up to date.
 - **Engineering work:** one database and schema design shared by all modules, cloud deployment with CI/CD, automated tests, a living security and authorization guideline, and the course documents.
 
@@ -41,7 +41,7 @@ Students and early-career researchers struggle to find research opportunities th
 - *Optional:* real-time chat that runs alongside the active application workflow as a concurrent companion, not as a separate step afterwards (WBS-6.2); teammate ratings, where users rate their teammates and owners may use the ratings as one input when selecting candidates (WBS-8.8); CV autofill, where an uploaded CV fills the profile and the user confirms it (WBS-3.2); e-mail notifications (WBS-12.2).
 
 **Out of scope:**
-- Native Android and iOS apps (the web interface is responsive).
+- Native Android and iOS apps (the web interface uses a responsive layout, verified by MC-08 in Section 1.4).
 - Payments and subscriptions; credits cannot be bought.
 - Integration with real institutions' internal systems (shown only with the dummy university); the data agent reads only public program pages.
 - Data collection from sources other than universities, such as OpenAlex.
@@ -75,10 +75,10 @@ Students and early-career researchers struggle to find research opportunities th
 | D-02 | Profile, CV and Discovery Module | Profiles and CV upload, CV summary, CV Adaptor, CV-summary search and the independent interest-based discovery service | The module's acceptance tests pass; on 10 sample CVs, every skill and interest in the summary appears in the CV and no CV Adaptor suggestion adds experience that is not in the CV; discovery results link to their source opportunity |
 | D-03 | Opportunity, Application and Q&D Module | Opportunities and requirements, applications and interest requests, Questions & Discussions boards with post reports, author roles and member labels, AI candidate ranking for owners | The module's acceptance tests, including reporting a post, pass on staging |
 | D-04 | Eligibility and AI Search Module | Eligibility search and the "Most fitting for me" AI search | The module's acceptance tests pass; on the labelled set, the AI search reaches higher precision@5 than keyword-only and embedding-only baselines; results contain only eligible opportunities and list at most the missing optional (plus) qualifications |
-| D-05 | Knowledge Search, Chatbot and Notification Services | Knowledge search with citations, the university chatbot, in-app notifications | The acceptance tests of the three services pass; every returned snippet links to its source post; every chatbot answer links to the platform records it used; in-app notifications are delivered for all four event types |
+| D-05 | Knowledge Search, Chatbot and Notification Services | Knowledge search with citations, the university chatbot, in-app notifications | The acceptance tests of the three services pass; every returned snippet links to its source post; every chatbot answer links to the platform records it used; in-app notifications are delivered for the four original event types and the additional relevant events |
 | D-06 | University Data and Credit Services | Dummy university service and the university data agent, credit system | The acceptance tests of both services pass; after a scheduled run, every stored university record matches its source; ledger invariants hold (no negative balance, transfers balance) |
 | D-07 | Deployed Platform and CI/CD Pipeline | CI/CD environment, repository workflow, database and schema design, database baseline, UI shell, AI services foundation, staging and production on the cloud | `main` and `dev` are protected; every PR runs lint and tests; merges to `dev` deploy to staging automatically; v1.0 runs in production over HTTPS by the delivery target (2026-12-24) |
-| D-08 | Test Suite and Quality Reports | Unit, integration and end-to-end suites; the living security and authorization guideline; security-scan, performance, usability and matching-evaluation results | All critical-flow E2E scenarios pass; every merged PR has the security checklist ticked; no open high-severity security finding; performance and usability results are recorded for each concern in Section 1.4 |
+| D-08 | Test Suite and Quality Reports | Unit, integration and end-to-end suites; the living security and authorization guideline; security-scan, performance, usability and matching-evaluation results | All critical-flow E2E scenarios pass; every merged PR has the security checklist ticked; no open high-severity security finding; every performance, usability and reliability criterion of Section 1.4 (MC-03 to MC-14) is measured under its stated condition, and its result is recorded next to its target |
 | D-09 | Documentation and Project Records | Requirements Specification, Requirements Analysis, Design Specification, Test Specification and report, user guide, README and API docs, AI usage and GenAI error report, project plan, meeting minutes, demo and presentation material | Each course document is submitted by its deadline and accepted by the customer (TA); a new member can run the system from the README; the AI report covers every AI-assisted PR |
 
 ### 1.3 Functional Requirements / Tasks
@@ -107,13 +107,35 @@ Students and early-career researchers struggle to find research opportunities th
 
 | Quality attribute | Requirement / concern | How it will be assessed |
 |---|---|---|
-| Security | Short-lived JWT access tokens with rotating refresh tokens; passwords stored with a standard hashing algorithm; standard access control for user roles; basic authorization tests will be performed; HTTPS only; secrets kept outside the repository; common web security risks addressed | Basic authorization tests; OWASP ZAP baseline scan, dependency audit and the PR security checklist |
-| Privacy (KVKK) | CVs and profiles are personal data: explicit consent before CV processing, private storage, account deletion removes personal data, only necessary data sent to LLMs; the LLM provider (Anthropic), the embedding provider (Voyage AI) and the tracing service (Langfuse) are named in the consent text; personal fields are masked in traces | Consent and deletion acceptance tests; review of prompts and logs for personal data |
-| Performance | Non-AI API calls stay fast under concurrent use; the AI search, the knowledge search and the chatbot respond quickly; main pages load quickly | Load test on staging with k6 or Locust and Lighthouse audits; Langfuse latency traces |
-| Usability | Responsive layout on phone and desktop screens; basic accessibility (contrast, keyboard navigation, labels); Turkish and English content | Lighthouse accessibility audit; a short usability questionnaire with users; language completeness check |
-| Reliability | If the LLM fails, the AI search falls back to the eligible list ranked by embedding similarity; if the embedding API fails, searches fall back to full-text search; failed background jobs are retried; every API error returns a unified error format with a user-facing message and is logged without personal data; daily database backups; high uptime in the demo week | Fault-injection tests with LLM and embedding-API timeouts; API error tests; a backup restore test and an uptime monitor on production |
+| Security | JWT access tokens expire after at most 15 minutes (MC-01), with rotating refresh tokens; passwords stored using Argon2id (MC-02), documented in the WBS-15.3 guideline; standard access control for user roles; basic authorization tests will be performed; HTTPS only; secrets kept outside the repository; common web security risks: zero open high-severity findings in the OWASP ZAP baseline scan and the dependency audit at code freeze (the WBS-15.3 target) | Token-expiry test of WBS-1.1 against the configured lifetime; basic authorization tests; OWASP ZAP baseline scan, dependency audit and the PR security checklist |
+| Privacy (KVKK) | CVs and profiles are personal data: explicit consent before CV processing, private storage, account deletion removes personal data; only the fields allowed by the personal-data rules of the WBS-15.3 guideline are sent to the LLM, embedding and tracing providers; the LLM provider (Anthropic), the embedding provider (Voyage AI) and the tracing service (Langfuse) are named in the consent text; personal fields are masked in traces | Consent and deletion acceptance tests; review of prompts, logs and Langfuse traces: no personal field outside the allowed list |
+| Performance | Non-AI API: response time at the 95th percentile ≤ 800 ms for key endpoints with 10 concurrent virtual users for 5 minutes (MC-03); AI search ≤ 20 s, knowledge search ≤ 5 s and chatbot complete answer ≤ 20 s, each at the 95th percentile (MC-04 to MC-06); main pages: Largest Contentful Paint ≤ 2.5 s (MC-07) | MC-03: load test on staging with k6 or Locust; MC-04 to MC-06: Langfuse latency traces on staging; MC-07: Lighthouse mobile audits on staging using the median of three runs per main page (WBS-15.5) |
+| Usability | Responsive layout: every main page renders without horizontal scrolling at 375 px phone and 1366 px desktop viewport widths (MC-08); accessibility: Lighthouse score ≥ 90/100 for every main page plus manual keyboard-navigation and form-label checks (MC-09); usability: mean System Usability Scale (SUS) score ≥ 68/100 from at least 5 users (MC-10); Turkish and English content: 100% of UI text resources exist in both languages (MC-11) | MC-08: Playwright checks at both viewports; MC-09: Lighthouse accessibility audit; MC-10: usability questionnaire with users; MC-11: language completeness check over the text resources of WBS-14.4 |
+| Reliability | If an LLM call fails or exceeds 12 s, the AI search falls back to the eligible list ranked by embedding similarity; if an embedding call fails or exceeds 4 s, searches fall back to full-text search (MC-12); a failed background job is retried at most 3 times (MC-13); every API error returns a unified error format with a user-facing message and is logged without personal data; daily database backups; production uptime ≥ 99.5% of checks over 7 consecutive days (2026-12-14 to 2026-12-20, then through the demo week), at five-minute intervals (MC-14) | Fault-injection tests with LLM and embedding-API timeouts; a test with a failing background job; API error tests; a backup restore test; MC-14: uptime monitor on production (WBS-14.6) from 2026-12-14 to 2026-12-20, continued through the demo week |
 | AI quality and safety | Every LLM output validated against a JSON schema; no skill or interest in a CV summary and no experience in a CV Adaptor suggestion that is not in the CV; chatbot answers come only from platform data; humans make every accept/reject decision; an admin can switch any AI feature off | Evaluation scripts on labelled sets; schema-validation tests |
 | Maintainability | Feature-based module structure; automated tests for every module; lint and formatting in CI; no direct commits to `main` or `dev` | CI checks and branch protection |
+
+#### Measurable criteria — working-draft targets agreed 2026-11-08 (Issue 3; wording from Issue 1)
+
+The targets below were agreed by the team for the working draft on 2026-11-08 (Issue 3) as measurable acceptance thresholds, not as achieved test results. Each criterion passes only if its measured value under the stated conditions meets the threshold. Results and any later adjustments must be recorded in the WBS-16.4 Test Report and the corresponding project issue. The additional agreed functional numerical rules (minimum password length, link expiry, profile completion, file size, shortlist, monthly AI allowance, deadline reminder and data-agent schedule/retries) are specified in Requirements Specification Section 2.1. Agreed initial credit settings (Admin-configurable): +2 per answer upvote, +5 for accepted answer, +10 once for profile completion, +1 per verified-user post, 10 for an extra CV Adaptor run and minimum 5 credits per question boost. Other implementation and risk decisions are addressed in the requirements and Section 6, separately from numeric acceptance criteria.
+
+| ID | Replaces (v1.0 wording) | Metric | Unit | Measurement condition and tool | Target |
+|---|---|---|---|---|---|
+| MC-01 | "Short-lived JWT access tokens" (1.4, WBS-1.1) | Access-token lifetime | minutes | Configured value, verified by the token-expiry test of WBS-1.1 in CI | ≤ 15 |
+| MC-02 | "a standard hashing algorithm" (1.4) | Password-hashing algorithm | — (named algorithm) | Recorded in the WBS-15.3 guideline; checked in the PR security checklist | Argon2id |
+| MC-03 | "Non-AI API calls stay fast under concurrent use" (1.4) | Response time of the key non-AI endpoints at the 95th percentile | ms | k6 or Locust load test on staging (WBS-15.5) with 10 concurrent virtual users for 5 minutes; key operations: login, profile retrieval, non-AI opportunity listing/filtering, application submission; exact API routes recorded in the test plan | ≤ 800 |
+| MC-04 | "the AI search … respond[s] quickly" (1.4) | End-to-end response time of the AI search (8.2) at the 95th percentile | s | Langfuse latency traces on staging for at least 30 representative AI-search requests (WBS-15.5) | ≤ 20 |
+| MC-05 | "the knowledge search … respond[s] quickly" (1.4) | End-to-end response time of the knowledge search (10.1) at the 95th percentile | s | Langfuse latency traces on staging for at least 30 representative knowledge-search requests (WBS-15.5) | ≤ 5 |
+| MC-06 | "the chatbot respond[s] quickly" (1.4) | Time from a sent chatbot question (10.3) to its complete answer, at the 95th percentile | s | Langfuse latency traces on staging for at least 30 representative chatbot questions (WBS-15.5) | ≤ 20 |
+| MC-07 | "main pages load quickly" (1.4) | Largest Contentful Paint of each main page | s | Lighthouse mobile audit on staging (WBS-15.5), median LCP of three runs per page; main pages: landing/home, opportunity list, profile, Questions & Discussions, admin dashboard | ≤ 2.5 |
+| MC-08 | "Responsive layout on phone and desktop screens" (1.4); "layouts work on phone and desktop screens" (WBS-14.4) | Main pages without horizontal scrolling | pass/fail per page and viewport | Playwright checks at phone viewport width 375 px and desktop viewport width 1366 px | All main pages pass |
+| MC-09 | "basic accessibility (contrast, keyboard navigation, labels)" (1.4) | Lighthouse accessibility score of each main page | score 0–100 | Lighthouse accessibility audit for every main page on staging (WBS-15.5), plus manual keyboard-navigation and form-label checks | ≥ 90/100 on every main page; manual checks pass |
+| MC-10 | "a short usability questionnaire with users" (1.4, WBS-15.5) | Mean System Usability Scale (SUS) score | SUS score (0–100) | Standard 10-item SUS questionnaire completed by at least 5 representative users after completing core workflows on staging | ≥ 68 |
+| MC-11 | "Turkish and English content" (1.4) | Share of UI text resources present in both languages | % | Language completeness check over the WBS-14.4 text resources | 100% |
+| MC-12 | "If the LLM fails … if the embedding API fails" (1.4) | Timeout after which the fallback starts | s (one value for LLM calls, one for embedding calls) | Fault-injection tests with LLM and embedding-API timeouts (8.2, 8.3, 10.1, 10.3) | LLM: 12 s; embedding API: 4 s |
+| MC-13 | "failed background jobs are retried" (1.4) | Maximum retries of a failed background job | count | Test with a failing background job (12.1, 13.2) | 3 |
+| MC-14 | "high uptime in the demo week" (1.4) | Production availability | % of uptime-monitor checks that succeed | Uptime monitor on production (WBS-14.6); a check succeeds when the configured application health endpoint returns a healthy HTTP response, checked every 5 min over 7 consecutive days (2026-12-14 to 2026-12-20 for the WBS-16.4 result; monitoring continues through the demo week); exact start/end timestamps recorded in the test plan before monitoring starts | ≥ 99.5 |
+| MC-15 | "messages arrive in real time" (contingent WBS-6.2) | Time from sending a chat message to its display for the other party | s | Playwright test with two sessions on staging; applies only if 6.2 enters a sprint | ≤ 2 |
 
 ---
 
@@ -123,18 +145,18 @@ The tasks in Section 1.3 are split into activities. Sizes use the five-level sca
 
 | WBS activity ID | Parent task ID | Activity / subtask | Description | Completion condition (Definition of Done) | Size (XS/S/M/L/XL) |
 |---|---|---|---|---|---|
-| WBS-1.1 | T-01 | Auth system | Authentication: registration as Student or Opportunity Owner, login and logout, password hashing, password reset by e-mail link (the e-mail integration built here is reused by 1.2), account deletion with personal-data removal. Session management: short-lived JWT access tokens with rotating refresh tokens, expiry, and revocation on logout or password change. Standard access control for the Student, Opportunity Owner and Admin roles. Basic authorization tests will be performed. | Acceptance tests pass in CI; basic authorization tests pass; token expiry, refresh rotation and revocation tests pass. | M |
-| WBS-1.2 | T-01 | Institutional e-mail verification | Verification link sent to a school or institution address, domain allow-list, restricted (read-only) mode for unverified users; uses the e-mail integration of 1.1. | Acceptance tests pass, including the restrictions for unverified users; a verification e-mail sent from staging reaches a real @itu.edu.tr inbox. | S |
-| WBS-2.2 | T-02 | Admin panel | Administrative interface: user list and search, role changes, suspension and reactivation. User reports and moderation actions: queue of user reports on posts and users with actions (hide or remove the post, warn or suspend the author, dismiss the report) and an audit log of every admin action. Administrative management endpoints (Admin-only API and UI): monthly AI-usage limit and credit parameters, switches that turn an AI feature off, and a read-only view of AI usage. | Admin acceptance tests pass on seeded reports; every admin action is in the audit log; basic authorization tests confirm that only admins reach the admin endpoints. | L |
+| WBS-1.1 | T-01 | Auth system | Authentication: registration as Student or Opportunity Owner, login and logout, password hashing, password reset by e-mail link (the e-mail integration built here is reused by 1.2), account deletion with personal-data removal. Session management: JWT access tokens with the lifetime of MC-01 (Section 1.4) and rotating refresh tokens, expiry, and revocation on logout or password change. Standard access control for the Student, Opportunity Owner and Admin roles. Basic authorization tests will be performed. | Acceptance tests pass in CI; basic authorization tests pass; token expiry, refresh rotation and revocation tests pass. | M |
+| WBS-1.2 | T-01 | Institutional e-mail verification | Verification link sent to a school or institution address, domain allow-list, restricted (read-only) mode for unverified users and a pending manual verification request on e-mail-delivery failure, requiring an Admin decision in WBS-2.2; uses the e-mail integration of 1.1. | Acceptance tests pass, including the restrictions for unverified users; a verification e-mail sent from staging reaches a real @itu.edu.tr inbox. | S |
+| WBS-2.2 | T-02 | Admin panel | Administrative interface: user list and search, role changes, suspension and reactivation. User reports and moderation actions: queue of user reports on posts and users with actions (hide or remove the post, warn or suspend the author, dismiss the report) and an audit log of every admin action, an Admin-only read-only searchable audit-log viewer (UC-23), approval/denial of manual verification exceptions (UC-01) and an Admin import-status UI (UC-25) backed by WBS-13.2. Administrative management endpoints (Admin-only API and UI): monthly AI-usage limit and credit parameters, switches that turn an AI feature off, and a read-only view of AI usage. | Admin acceptance tests pass on seeded reports; every admin action is in the audit log; basic authorization tests confirm that only admins reach the admin endpoints. | L |
 | WBS-3.1 | T-03 | Profile management | Education, skills, projects, interests and preferences; CV upload to private storage with explicit consent before processing; profile-completeness indicator used by the credit rules. | Acceptance tests pass, including the consent and private-storage checks; a CV can be uploaded, replaced and deleted, and deletion removes the stored file. | M |
 | WBS-3.2 | T-03 | CV autofill *(contingent — not in baseline)* | Uploading a CV fills the profile fields (LLM extraction into the profile schema); the user confirms them before saving. | Acceptance tests pass; nothing is saved without the user's confirmation. | M |
 | WBS-4.1 | T-04 | CV Adaptor | Adapts the CV to an opportunity the student selects: the AI compares the CV with the opportunity's requirements, shows which are met, partly met or missing, and suggests concrete changes (sections to reorder, projects and skills to highlight, missing keywords, wording). It never adds experience that is not in the CV. The student accepts or rejects each suggestion and downloads the adapted CV. | Acceptance tests pass; on 10 sample CV and opportunity pairs no suggestion adds experience that is not in the CV (no-fabrication check); every requirement is marked met, partly met or missing; the downloaded CV contains only the accepted suggestions. | M |
 | WBS-4.2 | T-04 | CV summary | Extracts the skills and interests in the uploaded CV (PDF text extraction, LLM extraction validated against a JSON schema) into a summary that is the input of the AI search (8.2, 8.3) and the AI candidate ranking (8.4); it adds nothing that is not in the CV. The CV Adaptor (4.1) reuses the extracted text. | Acceptance tests pass; on 10 sample CVs every skill and interest in the summary appears in the CV (no-fabrication check); every output validates against the JSON schema. | M |
 | WBS-5.1 | T-05 | Opportunity and requirement management | Owner creates, edits, opens/closes and archives opportunities; structured requirements (type, threshold, must-have or plus, weight). | Acceptance tests pass; requirements are stored in the structured form of the 14.7 schema. | M |
-| WBS-5.2 | T-05 | Announcements to followers *(contingent — not in baseline)* | Owner announcements shown to users who follow the opportunity. | Acceptance tests pass; every follower sees each new announcement of the opportunity. | S |
+| WBS-5.2 | T-05 | Announcements to followers *(contingent — not in baseline)* | Owner announcements with a verified-user follow/unfollow control on each opportunity and notifications to its followers shown to users who follow the opportunity. | Acceptance tests pass; every follower sees each new announcement of the opportunity. | S |
 | WBS-5.3 | T-05 | Opportunity calendar and events *(contingent — not in baseline)* | Application, interview and result dates, plus separate events. | Acceptance tests pass; the application, interview and result dates and the events of an opportunity appear in its calendar. | M |
 | WBS-6.1 | T-06 | Applications and interest requests | Apply, application status workflow and tracking (student and owner views), two-way interest requests (send, accept, decline). | Acceptance tests pass; every status change and interest request emits the event that notifications (12.1) use. | M |
-| WBS-6.2 | T-06 | Real-time chat alongside the application workflow *(contingent — not in baseline)* | A real-time chat that runs alongside the active application and interest-request workflow as a concurrent companion of the two parties; it is not a separate or asynchronous step after the workflow. | Acceptance tests pass; messages arrive in real time and are visible only to the two parties. | M |
+| WBS-6.2 | T-06 | Real-time chat alongside the application workflow *(contingent — not in baseline)* | A real-time chat that runs alongside the active application and interest-request workflow as a concurrent companion of the two parties; it is not a separate or asynchronous step after the workflow. | Acceptance tests pass; message delivery time meets MC-15 (Section 1.4) and messages are visible only to the two parties. | M |
 | WBS-7.1 | T-07 | Eligibility engine and filtered search | Rule checks of hard requirements with a reason per requirement; full-text search with filters; reasons shown for ineligible results. | Acceptance tests pass; every requirement type in the 14.7 schema has a rule test; the eligible pool is available to the AI search (8.2) through one interface. | M |
 | WBS-8.2 | T-08 | AI search: most fitting for me | Searches only the opportunities the user is eligible for (pool from 7.1) with the CV summary (4.2): embedding similarity to shortlist, then LLM ranking in parallel calls. Shows at most the missing optional (plus) qualifications; there is no must-have gap analysis. | Acceptance tests pass; outputs validate against the JSON schema; precision@5 on the 15.4 labelled set beats both baselines; the fault-injection test with LLM and embedding timeouts passes; the search works with the discovery service switched off. | M |
 | WBS-8.3 | T-08 | CV-summary search and interest-based discovery service | Search with the CV summary and an interest-based opportunity finder that lists opportunities matching the user's interests regardless of eligibility or open/closed status. The finder is functionally part of the AI search pipeline but architecturally decoupled: an independent discovery service with its own API. The AI search page shows its results in a separate section through an API contract fixed in the Design Specification and keeps working when the service is off. | Acceptance tests pass; every result links to its source opportunity; the discovery service runs as a separate service and passes its API contract tests; it falls back to full-text search when the embedding API times out. | M |
@@ -146,27 +168,27 @@ The tasks in Section 1.3 are split into activities. Sizes use the five-level sca
 | WBS-10.2 | T-10 | Open-web access for AI features *(contingent — not in baseline)* | AI features search and read open-web (internet) sources through a tool interface and cite them; this is not access to platform data. | Acceptance tests pass; every web-based answer cites its source URL. | M |
 | WBS-10.3 | T-10 | University chatbot | Chat page where students ask in Turkish or English and find suitable opportunities and graduate programs. The chatbot answers only from platform data (opportunities and the programs, labs and positions stored by the data agent), reaching it through defined tools (search, filter and compare opportunities; program, lab and position details) instead of guessing; it asks a clarifying question when a request is vague and links every answer to the records it used. | Acceptance tests pass; every answer links to the platform records it used; a question the platform data cannot answer gets a 'not in our data' reply instead of a guess; the chat works in Turkish and English; with the LLM timed out, the page shows an error message and keeps the conversation. | L |
 | WBS-11.1 | T-11 | Credit system | Credit ledger; earning (accepted or upvoted answers, profile completion, posts by verified users), spending (question boost with transfer to the accepted answerer, extra CV Adaptor runs), monthly AI-usage limit taken from the settings that the admin panel (2.2) controls. | Acceptance tests pass; ledger invariants hold in property tests (no negative balance, every transfer balances). | M |
-| WBS-12.1 | T-12 | In-app notifications | Event triggers and background jobs (application status, answers, interest requests, approaching deadlines), in-app inbox, user preferences. | Acceptance tests pass; notifications arrive for all four event types; each type can be switched off by the user. | M |
+| WBS-12.1 | T-12 | In-app notifications | Event triggers and background jobs (application status, answers, interest requests, approaching deadlines, moderation outcomes, question boosts, account deletion confirmations and opportunity announcements where implemented), in-app inbox, user preferences. | Acceptance tests pass; notifications arrive for the four original event types and the additional relevant events; user notification preferences are respected, and deletion sends no notification requiring retained deleted personal data. | M |
 | WBS-12.2 | T-12 | E-mail notifications *(contingent — not in baseline)* | E-mail delivery of the in-app notifications of 12.1, controlled by user preferences. | Acceptance tests pass; e-mails follow the user's preferences. | S |
 | WBS-13.1 | T-13 | Dummy university service | Standalone service with its own REST API and seed data (programs, labs, positions). | Its API contract tests pass; the service runs next to staging. | S |
-| WBS-13.2 | T-13 | University data agent | Background agent that collects the programs, labs and positions of universities on a schedule, from the dummy university's API and from public university program pages (LLM extraction validated against a JSON schema), and keeps the database up to date: new records are added, changed records are updated and re-indexed for search, and records removed at the source are archived. Every record keeps a link to its source. | Acceptance tests pass; after a scheduled run, a record changed at the source is updated and re-indexed in the database; every stored record links to its source; a failing source is retried and does not stop the others; running the agent twice creates no duplicates. | M |
+| WBS-13.2 | T-13 | University data agent | Background agent that collects the programs, labs and positions of universities on a schedule, from the dummy university's API and from public university program pages (LLM extraction validated against a JSON schema), and keeps the database up to date: new records are added, changed records are updated and re-indexed for search, and records removed at the source are archived. Every record keeps a link to its source. Persist per-run and per-source result status, last successful update, error reason and counts, and provide an Admin-authorized status API for the WBS-2.2 dashboard. | Acceptance tests pass; after a scheduled run, a record changed at the source is updated and re-indexed in the database; every stored record links to its source; a failing source is retried and does not stop the others; running the agent twice creates no duplicates. | M |
 | WBS-14.1 | T-14 | Technology selection spikes | Record and verify the technology choices: Claude API (Sonnet 5.5 as the main model, Haiku 5.5 as the small model); Voyage `voyage-4-lite` hosted embeddings (1024 dimensions) with `voyage-4-nano` for local development; AWS with staging and production in two member accounts. Includes a short spike (one embedding call and one schema-validated LLM call). | The decision record (ADR) is merged; both spike calls succeed. | S |
 | WBS-14.2 | T-14 | CI/CD environment setup *(26 October – 6 November, effort set at 0.3 man-weeks)* | On the existing repository and its Docker test job: FastAPI and Next.js skeletons that build and test in Docker; protected `main` and `dev` branches that accept only pull requests; PR template with an AI-usage field; CI with lint and tests; GitHub environments and secrets for staging and production, and the deployment workflow that WBS-14.6 connects to the servers. Starts on 26 October so that every module has CI from its first day. | A sample PR into `dev` passes lint and tests; direct pushes to `main` and `dev` are rejected; the staging and production environments and their secrets exist in GitHub and the deployment workflow completes a dry run. | S |
 | WBS-14.3 | T-14 | Database baseline | PostgreSQL with pgvector (embedding columns of 1024 dimensions plus an `embedding_model` column) and full-text indexes; first migrations from the 14.7 schema; seed data for development and tests. | Migrations run forward and back in CI and in the local Docker stack; the seed script loads the demo data. | S |
-| WBS-14.4 | T-14 | Frontend shell and design system | Next.js app shell, Tailwind component set, navigation and role-aware layouts, Turkish and English text resources, shared form, loading, empty and error states. | The shared components are used by two modules; layouts work on phone and desktop screens; both languages switch at run time. | M |
+| WBS-14.4 | T-14 | Frontend shell and design system | Next.js app shell, Tailwind component set, navigation and role-aware layouts, Turkish and English text resources, shared form, loading, empty and error states. | The shared components are used by two modules; layouts pass MC-08 (phone and desktop viewports, Section 1.4); both languages switch at run time. | M |
 | WBS-14.5 | T-14 | AI services foundation | LLM gateway (provider abstraction, JSON-schema validated outputs, retries, timeouts, token logging), Langfuse Cloud tracing, and an embedding client behind one interface (hosted Voyage API in staging and production, local `voyage-4-nano` for development, a fake embedder for unit tests). | A traced, schema-validated LLM call and an embedding call run end to end from CI; token usage is recorded per call; unit tests use the fake embedder. | M |
 | WBS-14.6 | T-14 | Staging deployment and CD | Docker Compose for local development; staging and production on two `t3.small` instances in two member AWS accounts, each with HTTPS, 2 GB swap and secrets kept in GitHub; IAM users with MFA instead of a shared root login; Next.js images built in GitHub Actions; the 14.2 deployment workflow connected to both servers, so merges to `dev` deploy to staging and release merges to `main` deploy to production (walking skeleton); daily database backups to S3 and an uptime monitor on production. | Every merge to `dev` deploys to staging and every release merge to `main` deploys to production automatically; production runs over HTTPS; migrations run on both environments; a restore from the latest backup succeeds; the uptime monitor is active. | M |
 | WBS-14.7 | T-14 | Database and schema design | Data modeling for every Essential module: entities and relations (ER diagram), relational integrity (primary and foreign keys, constraints), indices (including the pgvector and full-text columns), naming conventions, and migration planning (tool, versioning, review of schema changes, seed data, rollback). | The ER diagram and table definitions are merged and reviewed by every module owner; the migration plan is approved; the model is the data-model input of 16.2 and 16.3. | M |
 | WBS-15.1 | T-15 | Test strategy and automation setup | On the repository's existing pytest and GitHub Actions setup: Gherkin (pytest-bdd) and Playwright runners, shared fixtures and the test plan skeleton, so that every module writes acceptance tests from its first day. | The first acceptance test (pytest-bdd) and a Playwright smoke test run in CI. | S |
-| WBS-15.2 | T-15 | Integration and end-to-end test suite | E2E scenarios for the critical flows (register to apply; ask, answer and earn credit; report a post and resolve it in the admin panel). The AI flows are tested end to end in 8.2, 8.4 and 10.3 and again in the release regression (15.6). | All critical-flow scenarios pass on staging. | M |
+| WBS-15.2 | T-15 | Integration and end-to-end test suite | E2E scenarios for the critical flows (register to apply; ask, answer and earn credit; report a post and resolve it in the admin panel; admin manual verification and university import-status checks with failure/authorization scenarios). The AI flows are tested end to end in 8.2, 8.4 and 10.3 and again in the release regression (15.6). | All critical-flow scenarios pass on staging, including manual verification audit and admin import-status cases. | M |
 | WBS-15.3 | T-15 | Security and authorization guideline *(living guideline — level of effort)* | A living guideline, not a one-off test activity, used at every PR review and sprint review: authentication and session design, personal-data rules (what may be sent to the LLM, embedding and tracing providers and what may be logged), secret handling, and the PR security checklist (common web security risks, input validation, a basic authorization test for every new protected endpoint). The OWASP ZAP baseline scan and the dependency audit run in CI against it. | Version 1 merged by 2026-11-08 and linked from the PR template; every merged PR has the checklist ticked; every protected endpoint has a basic authorization test; a new version is reviewed at every sprint review; no high-severity ZAP or dependency-audit finding is open at code freeze. | S |
 | WBS-15.4 | T-15 | Matching evaluation harness | Test-first: labelled relevance set plus keyword-only and embedding-only baseline runs (precision@5) with the production embedding model (`voyage-4-lite`); 8.2 must beat these baselines. Embeddings of the labelled set are cached, and the API key is stored as a GitHub secret. | The harness runs in CI and the baseline scores are recorded. | S |
-| WBS-15.5 | T-15 | Performance and usability checks | Load test of key endpoints on staging, Lighthouse audits and a short usability questionnaire with users. | Performance and usability results are recorded for each concern in Section 1.4, and every problem found becomes an issue. | S |
+| WBS-15.5 | T-15 | Performance and usability checks | Load test of key non-AI endpoints on staging (MC-03); latency measurement for AI search, knowledge search and chatbot using at least 30 representative requests each (MC-04 to MC-06); Lighthouse performance and accessibility audits (MC-07, MC-09); viewport checks (MC-08); usability SUS questionnaire (MC-10). | Each of MC-03 to MC-10 (Section 1.4) is measured under its stated condition and recorded against the target in WBS-16.4; every missed target becomes an issue. | S |
 | WBS-15.6 | T-15 | Stabilization and v1.0 release | Bug fixing, a full regression of all suites including the AI flows, release pull request from `dev` to `main`, production deployment and release tag v1.0. | The release candidate passes all suites; v1.0 runs in production over HTTPS and is tagged by the delivery target (2026-12-24); no high-severity defect is open. | M |
 | WBS-16.1 | T-16 | Requirements Specification | User stories for every Essential, Desirable and Optional requirement with Gherkin acceptance criteria (test-first), key use cases, NFRs. | Submitted by 2026-11-02; every Essential requirement has at least one Gherkin scenario. | M |
 | WBS-16.2 | T-16 | Requirements Analysis | Domain/data model (based on 14.7), behavioral models (sequence, activity, state), wireframes and clickable prototype. | Submitted by 2026-11-23; the prototype covers every Essential user flow. | M |
 | WBS-16.3 | T-16 | Design Specification | Architecture, component and low-level design, API specification, database design (from 14.7), AI pipeline and deployment design. | Submitted by 2026-12-07; the API specification matches the OpenAPI document generated from the code. | M |
-| WBS-16.4 | T-16 | Test Specification and Test Report | Test plan, test cases derived from the acceptance criteria, traceability matrix (requirement, test, result). | Submitted by 2026-12-21; every Essential requirement traces to at least one test and its latest result. | M |
+| WBS-16.4 | T-16 | Test Specification and Test Report | Test plan, test cases derived from acceptance criteria, traceability matrix (requirement, test, result), and recorded actual-versus-target results for the measurable MC-01 to MC-15 criteria (MC-15 only if chat is implemented). | Submitted by 2026-12-21; every Essential requirement traces to at least one test and its latest result. | M |
 | WBS-16.5 | T-16 | AI usage and GenAI error report *(level of effort)* | Continuous log of AI-assisted work, human review effort, token usage, error types, detection and fixes. | Every AI-assisted PR is in the log; the final report is submitted by 2026-12-25. | S |
 | WBS-16.6 | T-16 | User guide, README and API documentation | User guide per role and setup guide, plus a final review of the README and the OpenAPI documentation, which the common DoD keeps current in every pull request. | A member who did not write it can run the system from the README; the user guide covers all three roles. | S |
 | WBS-16.7 | T-16 | Final demo and presentation preparation | Demo script and data, slides on technical details and challenges. | A full rehearsal on the released production version is done by 2026-12-25, ready for the demo (2026-12-26) and the presentation (2026-12-28). | M |
@@ -184,10 +206,11 @@ The tasks in Section 1.3 are split into activities. Sizes use the five-level sca
 - **Sizes:** 44 baseline activities: 15 S, 27 M and 2 L (no XS or XL). One-off records such as the charter and this plan are S; the four course specifications are M; implementation activities with broad scope or integration risk are M (Auth system, profiles, UI shell, AI services foundation, candidate ranking, schema design); the admin panel and the university chatbot are L. Nothing is XL.
 - **Complete workload:** management, documents, testing and release are part of the WBS too.
 - **Optional items:** the Desirable and Optional items have sized contingent activities (Section 3). They are outside the baseline and enter a sprint only if there is spare capacity.
-- **Owners that differ from the charter (to balance the load):** credits (WBS-11.1) moved from Furkan to Amr; discovery (WBS-8.3) to Ahmet Yusuf, whose CV summary it uses; candidate ranking (WBS-8.4) to Ahmed Said, who builds the LLM gateway; institutional e-mail verification (WBS-1.2) from Najeeb to Ahmed Said, because Najeeb owns the full admin panel. Notifications (WBS-12.1) stay with Yavuz. The chatbot (WBS-10.3), Ahmed Said's module in the charter, is shared: Ahmed Said builds the conversation flow, the chat API and the chat page (75%) and Furkan the tools over platform data (25%); in exchange, the knowledge search (WBS-10.1) moved from Ahmed Said to Yavuz, who owns the Questions & Discussions boards it indexes. Outside the modules, the load tests of WBS-15.5 moved from Najeeb to Furkan.
-- **Key dependencies:** the CI/CD setup (14.2, 26 October – 6 November) and the test setup (15.1) come before the first modules; the schema design (14.7) and the database baseline (14.3) come before any module; the CV summary (4.2) feeds the AI search (8.2), discovery (8.3), candidate ranking (8.4) and the CV Adaptor (4.1); the data agent (13.2) stores the university records that the chatbot (10.3) answers from; the eligibility engine (7.1) defines the AI search pool; the AI search calls the discovery service (8.3) through an API and keeps working without it; the evaluation harness (15.4) comes before the AI search; the admin panel (2.2) uses the shared report table, so it does not wait for Questions & Discussions (the full report flow is tested in 15.2); the release (15.6) waits for all feature and test work, and demo preparation (16.7) follows it. There is no shared search service: each AI feature uses the embedding client of 14.5.
+- **Owners that differ from the charter (to balance the load):** credits (WBS-11.1) moved from Furkan to Amr; discovery (WBS-8.3) to Ahmet Yusuf, whose CV summary it uses; candidate ranking (WBS-8.4) to Ahmed Said, who builds the LLM gateway; institutional e-mail verification (WBS-1.2) from Najib to Ahmed Said, because Najib owns the full admin panel. In v1.0, notifications (WBS-12.1) stayed with Yavuz; v1.1 proposes moving them to Najib (see the last bullet). The chatbot (WBS-10.3), Ahmed Said's module in the charter, is shared: Ahmed Said builds the conversation flow, the chat API and the chat page (75%) and Furkan the tools over platform data (25%); in exchange, the knowledge search (WBS-10.1) moved from Ahmed Said to Yavuz, who owns the Questions & Discussions boards it indexes. Outside the modules, the load tests of WBS-15.5 moved from Najib to Furkan.
+- **Key dependencies:** the CI/CD setup (14.2, 26 October – 6 November) and the test setup (15.1) come before the first modules; the schema design (14.7) and the database baseline (14.3) come before any module; the CV summary (4.2) feeds the AI search (8.2), discovery (8.3), candidate ranking (8.4) and the CV Adaptor (4.1); the data agent (13.2) stores the university records that the chatbot (10.3) answers from; the eligibility engine (7.1) defines the AI search pool; the AI search calls the discovery service (8.3) through an API and keeps working without it; the evaluation harness (15.4) comes before the AI search; the admin panel (2.2) uses the shared report table, so it does not wait for Questions & Discussions (the full report flow is tested in 15.2); the import-status UI of 2.2 uses the 13.2 run-status API, available from 2026-11-26, before 2.2 ends on 2026-11-30; the release (15.6) waits for all feature and test work, and demo preparation (16.7) follows it. There is no shared search service: each AI feature uses the embedding client of 14.5.
 - Changes on 24 October (WBS IDs are never reused): removed WBS-2.1 (separate authorization activity), 2.3 (AI moderation pipeline), 8.1 (shared retrieval pipeline) and the contingent 8.6 and 8.7 (recommendation feed and learning from feedback); 1.1 became the Auth system and 2.2 the full admin panel; added 14.7 (database and schema design); 15.3 became a living guideline; 8.3 became an independent discovery service; 3.2 (CV autofill) became optional; added the contingent 12.2 (e-mail notifications) and 8.8 (teammate ratings); 14.2 became Furkan's CI/CD environment setup (26 October – 6 November, 0.3 man-weeks), so his share of the 14.7 effort fell to 10% (review) and Yavuz's rose to 40%; the load tests of 15.5 moved to Furkan.
 - Changes on 25 October (team review of the scope): the chatbot (10.3) moved from the contingent list into the baseline; 13.2 changed from a one-time import into the university data agent; 4.1 is again the opportunity-specific CV Adaptor, and the CV summary became the new activity 4.2; Questions & Discussions (9.1) became boards open to everyone, per opportunity and per institution plus a general one.
+- **Changes in v1.1 (7 November) — Proposed — pending team agreement (Issue 2):** in-app notifications (WBS-12.1) move from Yavuz to Najib, and the contingent e-mail notifications (WBS-12.2), which deliver the notifications of 12.1 by e-mail with the e-mail integration of 1.1, move with them. Reason: Yavuz had the highest load (109.4 h, 87%) and five feature activities, four of which (9.1 → 6.1 → 10.1 → 12.1) ran one after another on the critical path; notifications need only the events of the applications workflow (6.1) and the Questions & Discussions boards (9.1), not the knowledge search (10.1), so with another owner they no longer wait for Yavuz's queue. Najib had the lowest load (90.1 h, 71%) and spare hours in weeks 6 and 7, after the admin panel (2.2) ends; he built the e-mail integration in 1.1. Effects: Yavuz 97.3 h (77%), Najib 102.3 h (81%); the release moves from 2026-12-21 to 2026-12-20 (Sections 4.2 and 5). No WBS ID, size or estimate changes.
 
 > **Course guideline note:** User stories for these subtasks will be written in the separate requirements document; this project plan defines and sizes the subtasks.
 
@@ -258,7 +281,7 @@ Effort for every WBS activity in **man-weeks (person-weeks)**; 1 man-week = 40 p
 | WBS-8.5 | Team-aware matching | M | High | 0.36 | Furkan | High: consent handling and matching quality with team profiles. |
 | WBS-8.8 | Teammate ratings for candidate selection | M | Medium | 0.33 | Ahmed Said | Medium: rating rules (teammates only, once per pair) and use in candidate selection. |
 | WBS-10.2 | Open-web access for AI features | M | High | 0.36 | Ahmed Said | High: quality and citation of open-web sources. |
-| WBS-12.2 | E-mail notifications | S | Low | 0.15 | Yavuz | Low: reuses the e-mail integration of 1.1. |
+| WBS-12.2 | E-mail notifications | S | Low | 0.15 | Najib (v1.0: Yavuz; v1.1 proposal, Issue 2) | Low: reuses the e-mail integration of 1.1. |
 | **Contingent total** | — | — | — | **2.35** | — | — |
 
 *Values are rounded to two decimals; the total uses the unrounded values.*
@@ -267,7 +290,7 @@ Effort for every WBS activity in **man-weeks (person-weeks)**; 1 man-week = 40 p
 1. **Size → most likely effort (M).** Each size has an anchor: XS = 0.125, S = 0.25, M = 0.5, L = 1, XL = 2 man-weeks. Owners confirm their sizes in planning poker at Sprint 1 planning. For documents, design and management, M = anchor. For implementation, M = anchor × 0.35/0.60 (≈ 0.583); for testing, M = anchor × 0.50/0.75 (≈ 0.67), as explained in step 4. The only exception is WBS-14.2, whose te its owner set at 0.3 man-weeks.
 2. **Uncertainty (Unc.) → O and P.** Low: O = 0.75·M, P = 1.5·M. Medium: O = 0.75·M, P = 2·M. High: O = 0.5·M, P = 3·M. High is used for LLM-dependent work, first-time course documents and stabilization.
 3. **Expected effort:** te = (O + 4M + P) / 6, the PERT three-point formula. Completed activities use the effort already spent.
-4. **AI assistance.** AI coding agents draft code and tests from each activity's DoD; members specify the work, review the output and fix it. The size anchors assume ordinary AI help (code completion and chat), where AI-assisted work takes 0.60 of the no-AI effort in implementation, 0.75 in testing, 0.85 in documents and design and 1.00 in management. The plan works with AI agents that draft most of the code and tests, so it uses these ratios: implementation (0.35) and testing (0.50). The release meets the delivery target with up to 5% more implementation and testing effort, and the Sprint 1 review checks the logged effort against the ratios (risk R-14). Every AI-assisted pull request is reviewed by a teammate; the testing share of the implementation activities (2.83 man-weeks) tests the AI-generated code, their coding share includes reviewing it, and review time is logged in WBS-16.5. The table shows the AI contribution:
+4. **AI assistance.** AI coding agents draft code and tests from each activity's DoD; members specify the work, review the output and fix it. The size anchors assume ordinary AI help (code completion and chat), where AI-assisted work takes 0.60 of the no-AI effort in implementation, 0.75 in testing, 0.85 in documents and design and 1.00 in management. The plan works with AI agents that draft most of the code and tests, so it uses these ratios: implementation (0.35) and testing (0.50). In the v1.0 schedule the release met the delivery target with up to 5% more implementation and testing effort (v1.1 sensitivity was not recomputed; 5% is a v1.0 historical result only, not a verified v1.1 tolerance), and the Sprint 1 review checks the logged effort against the ratios (risk R-14). Every AI-assisted pull request is reviewed by a teammate; the testing share of the implementation activities (2.83 man-weeks) tests the AI-generated code, their coding share includes reviewing it, and review time is logged in WBS-16.5. The table shows the AI contribution:
 
 | Work type | AI-assisted effort (man-weeks) | Same work without AI (man-weeks) | AI-equivalent contribution (man-weeks) | Ratio used |
 |---|---|---|---|---|
@@ -289,9 +312,9 @@ Effort for every WBS activity in **man-weeks (person-weeks)**; 1 man-week = 40 p
 
 Shares are rounded. Analysis and design is at the lower end of the guideline and testing near its upper end; coding is slightly above it, because coding includes reviewing AI-generated code. The split is compared with the time log after Sprint 2.
 
-**Capacity check:** Remaining effort from 2026-10-26 is 15.00 man-weeks (600.2 person-hours): 266.9 h of feature work and 333.3 h of documents, testing, platform and management work. Team capacity at 14.5 h per week is 758.1 person-hours, so planned utilization is 79%. The levelled schedule releases v1.0 on 2026-12-21, 3 days before the 2026-12-24 delivery target. The margin is narrow: more than 5% extra implementation and testing effort moves the release past the target. At 10 h per week (capacity 522.9 person-hours) the release would be on 2027-01-21, after code freeze.
+**Capacity check:** Remaining effort from 2026-10-26 is 15.00 man-weeks (600.2 person-hours): 266.9 h of feature work and 333.3 h of documents, testing, platform and management work. Team capacity at 14.5 h per week is 758.1 person-hours, so planned utilization is 79%; the v1.1 redistribution (Issue 2, proposed) moves hours between members but does not change these totals. The levelled schedule releases v1.0 on 2026-12-20, 4 days before the 2026-12-24 delivery target (v1.0 of this plan: 2026-12-21, 3 days). No member goes above 14.5 h in any week (Section 4.2). In the v1.0 schedule the margin was narrow: more than 5% extra implementation and testing effort moved the release past the target, and at 10 h per week (capacity 522.9 person-hours) the release would have been on 2027-01-21, after code freeze. The +5% effort and 10-hour/week scenarios are historical v1.0 results, not verified v1.1 projections; a new schedule simulation is required before claiming equivalent robustness. Scope added on 2026-11-08 to WBS-1.2, 2.2, 5.2, 12.1, 13.2, 15.2, 15.5 and 16.4 is absorbed in the existing estimates for now and will be re-estimated at the next sprint review.
 
-**Effort versus duration:** duration = effort ÷ allocation. An activity takes its te divided by the total allocation (FTE) of its members in Section 4.2; 1.0 FTE is 40 h per week. Example: WBS-1.1 needs 0.33 man-weeks (13.1 h); Najeeb works on it at 0.29 FTE (about 11.5 h a week), so it takes 1.14 weeks. The schedule plans every member's hours day by day and never goes above 14.5 h in a week (0.36 FTE); the weekly table in Section 4.2 shows these hours. AI assistants are not counted as extra FTE, because their work is already inside the estimates.
+**Effort versus duration:** duration = effort ÷ allocation. An activity takes its te divided by the total allocation (FTE) of its members in Section 4.2; 1.0 FTE is 40 h per week. Example: WBS-1.1 needs 0.33 man-weeks (13.1 h); Najib works on it at 0.29 FTE (about 11.5 h a week), so it takes 1.14 weeks. The schedule plans every member's hours day by day and never goes above 14.5 h in a week (0.36 FTE); the weekly table in Section 4.2 shows these hours. AI assistants are not counted as extra FTE, because their work is already inside the estimates.
 
 ---
 
@@ -301,15 +324,15 @@ Shares are rounded. Analysis and design is at the lower end of the guideline and
 
 | Member | Student ID | Role(s) | Main responsibilities |
 |---|---|---|---|
-| Yavuz Selim Yağlıca | 150220103 | Project Manager; Backend & API Manager; module owner: Opportunities, Applications, Questions and Discussions, Knowledge Search & Notifications | Plan, customer (TA) meetings, reporting; API conventions; co-designer of the schema (14.7); WBS-5.1, 6.1, 9.1, 10.1, 12.1 |
+| Yavuz Selim Yağlıca | 150220103 | Project Manager; Backend & API Manager; module owner: Opportunities, Applications, Questions and Discussions & Knowledge Search | Plan, customer (TA) meetings, reporting; API conventions; co-designer of the schema (14.7); WBS-5.1, 6.1, 9.1, 10.1 (v1.0 also 12.1; moved to Najib in the v1.1 proposal, Issue 2) |
 | Furkan Yalçın | 150220116 | Designer-Architect; GitHub Workflow Manager; module owner: Eligibility & AI Search | Architecture and Design Specification lead; CI/CD environment setup from 26 October (14.2); schema review (14.7); WBS-7.1, 8.2; chatbot tools (10.3); matching evaluation; load tests (15.5) |
 | Ahmed Said Gülşen | 150220044 | AI Manager; DevOps Manager; module owner: Chatbot & Candidate Ranking | Provider selection, LLM gateway and Langfuse; deployment to the cloud servers; WBS-10.3 (lead), 8.4, 1.2; AI usage report |
 | Ahmet Yusuf Kurukız | 150240716 | UI Manager; Scrum Master; module owner: Profiles, CV Adaptor & Discovery | UI shell and design system; sprint events and board; WBS-3.1, 4.2, 4.1, 8.3; usability checks (15.5); Requirements Analysis lead |
-| Najeeb Attar | 150220905 | QA Tester; Requirement Document Manager; module owner: Auth & Administration | Requirements Specification lead; test automation setup (15.1); security and authorization guideline (15.3); WBS-1.1, 2.2 |
+| Najib Attar | 150220905 | QA Tester; Requirement Document Manager; module owner: Auth, Administration & Notifications | Requirements Specification lead; test automation setup (15.1); security and authorization guideline (15.3); WBS-1.1, 2.2, 12.1 (12.1 and the contingent 12.2 from Yavuz in the v1.1 proposal, Issue 2) |
 | Amr Naweel Zuhdi Taweel | 150220937 | Database Manager; Test Manager; module owner: University Data Agent & Credits | Schema design lead (14.7), database baseline and the database side of staging and production (14.6); Test Specification lead (16.4); WBS-13.1, 13.2, 11.1 |
 | AI coding assistants (GPT-Sol–class and Claude Sonnet–class) | — | Supervised software developer | Code, refactoring, test and documentation drafts inside members' activities; may open PRs but never merge; every AI-assisted PR is reviewed by a human and logged (tokens, review effort, errors found) |
 
-Module ownership follows the charter except for the activities noted in Section 2. Each module has a paired pull-request reviewer (Najeeb ↔ Amr, Furkan ↔ Ahmed Said, Yavuz ↔ Ahmet Yusuf); review time is included in the estimates.
+Module ownership follows the charter except for the activities noted in Section 2. Each module has a paired pull-request reviewer (Najib ↔ Amr, Furkan ↔ Ahmed Said, Yavuz ↔ Ahmet Yusuf); review time is included in the estimates. The reviewer pairs do not change in v1.1; notifications (12.1) follow their new owner's pair (Najib ↔ Amr).
 
 ### 4.2 Member-to-Activity Assignment
 
@@ -317,9 +340,9 @@ Allocation (FTE) = the member's share of the activity's te ÷ the activity's dur
 
 | WBS activity ID | Assigned member | Responsibility | Allocation to activity (FTE) |
 |---|---|---|---|
-| WBS-1.1 | Najeeb | Owner: design, AI-assisted implementation, unit tests, PR | 0.29 |
+| WBS-1.1 | Najib | Owner: design, AI-assisted implementation, unit tests, PR | 0.29 |
 | WBS-1.2 | Ahmed Said | Owner: design, AI-assisted implementation, unit tests, PR | 0.29 |
-| WBS-2.2 | Najeeb | Owner: design, AI-assisted implementation, unit tests, PR | 0.29 |
+| WBS-2.2 | Najib | Owner: design, AI-assisted implementation, unit tests, PR | 0.29 |
 | WBS-3.1 | Ahmet Yusuf | Owner: design, AI-assisted implementation, unit tests, PR | 0.27 |
 | WBS-3.2 | Ahmet Yusuf | Owner if the item enters a sprint (contingent) | 0 (not scheduled) |
 | WBS-4.1 | Ahmet Yusuf | Owner: design, AI-assisted implementation, unit tests, PR | 0.26 |
@@ -341,8 +364,8 @@ Allocation (FTE) = the member's share of the activity's te ÷ the activity's dur
 | WBS-10.3 | Ahmed Said | Owner: conversation flow, LLM calls, chat API, source links and the chat page | 0.29 |
 | WBS-10.3 | Furkan | Tools over platform data: opportunity search, filters and comparison; program, lab and position details | 0.098 |
 | WBS-11.1 | Amr | Owner: design, AI-assisted implementation, unit tests, PR | 0.29 |
-| WBS-12.1 | Yavuz | Owner: design, AI-assisted implementation, unit tests, PR | 0.27 |
-| WBS-12.2 | Yavuz | Owner if the item enters a sprint (contingent) | 0 (not scheduled) |
+| WBS-12.1 | Najib *(v1.0: Yavuz; Proposed — pending team agreement, Issue 2)* | Owner: design, AI-assisted implementation, unit tests, PR | 0.24 |
+| WBS-12.2 | Najib *(v1.0: Yavuz; Proposed — pending team agreement, Issue 2)* | Owner if the item enters a sprint (contingent) | 0 (not scheduled) |
 | WBS-13.1 | Amr | Owner: design, AI-assisted implementation, unit tests, PR | 0.27 |
 | WBS-13.2 | Amr | Owner: design, AI-assisted implementation, unit tests, PR | 0.28 |
 | WBS-14.1 | Ahmed Said | LLM, cloud and embedding options | 0.091 |
@@ -356,70 +379,83 @@ Allocation (FTE) = the member's share of the activity's te ÷ the activity's dur
 | WBS-14.7 | Amr | Lead: logical model and migration plan | 0.25 |
 | WBS-14.7 | Yavuz | Core entities and API conventions | 0.20 |
 | WBS-14.7 | Furkan | Architecture fit; review with module owners | 0.049 |
-| WBS-15.1 | Najeeb | Owner: runners, fixtures and the first acceptance test; test plan skeleton with the Test Manager | 0.17 |
+| WBS-15.1 | Najib | Owner: runners, fixtures and the first acceptance test; test plan skeleton with the Test Manager | 0.17 |
 | WBS-15.2 | Amr | E2E framework and scenarios | 0.26 |
-| WBS-15.2 | Najeeb | Scenario design and execution | 0.26 |
-| WBS-15.3 | Najeeb | Owner: guideline and PR checklist; runs the CI scans | 0.011 |
+| WBS-15.2 | Najib | Scenario design and execution | 0.26 |
+| WBS-15.3 | Najib | Owner: guideline and PR checklist; runs the CI scans | 0.011 |
 | WBS-15.3 | Yavuz, Furkan, Ahmed Said, Ahmet Yusuf, Amr | Adds basic authorization tests for own endpoints; applies the checklist in reviews | 0.002 each |
 | WBS-15.4 | Furkan | Baselines and metrics | 0.24 |
 | WBS-15.4 | Amr | Labelled set and CI job | 0.24 |
 | WBS-15.5 | Furkan | Load tests of the key endpoints | 0.20 |
 | WBS-15.5 | Ahmet Yusuf | Lighthouse audits and usability questionnaire | 0.20 |
 | WBS-15.6 | All six members | Fixes defects in own module; release tasks | 0.24 each |
-| WBS-16.1 | Najeeb | Lead editor; consolidates the SRS | 0.14 |
+| WBS-16.1 | Najib | Lead editor; consolidates the SRS | 0.14 |
 | WBS-16.1 | Yavuz, Furkan, Ahmed Said, Ahmet Yusuf, Amr | Writes the sections for own module | 0.082 each |
 | WBS-16.2 | Ahmet Yusuf | Lead: wireframes and prototype | 0.052 |
 | WBS-16.2 | Amr | Data model | 0.042 |
-| WBS-16.2 | Yavuz, Furkan, Ahmed Said, Najeeb | Writes the sections for own module | 0.029 each |
+| WBS-16.2 | Yavuz, Furkan, Ahmed Said, Najib | Writes the sections for own module | 0.029 each |
 | WBS-16.3 | Furkan | Lead: architecture and design | 0.078 |
-| WBS-16.3 | Yavuz, Ahmet Yusuf, Najeeb, Amr | Writes the sections for own module | 0.047 each |
+| WBS-16.3 | Yavuz, Ahmet Yusuf, Najib, Amr | Writes the sections for own module | 0.047 each |
 | WBS-16.3 | Ahmed Said | AI pipeline and deployment views | 0.047 |
 | WBS-16.4 | Amr | Lead: test plan and traceability | 0.098 |
-| WBS-16.4 | Najeeb | Test cases and results | 0.070 |
+| WBS-16.4 | Najib | Test cases and results | 0.070 |
 | WBS-16.4 | Yavuz, Furkan, Ahmed Said, Ahmet Yusuf | Writes the sections for own module | 0.028 each |
 | WBS-16.5 | Ahmed Said | Maintains the AI log; writes the report | 0.012 |
-| WBS-16.5 | Yavuz, Furkan, Ahmet Yusuf, Najeeb, Amr | Logs own AI usage, review effort and fixes | 0.004 each |
+| WBS-16.5 | Yavuz, Furkan, Ahmet Yusuf, Najib, Amr | Logs own AI usage, review effort and fixes | 0.004 each |
 | WBS-16.6 | Furkan | README and OpenAPI docs | 0.091 |
 | WBS-16.6 | Ahmet Yusuf | User guide | 0.091 |
 | WBS-16.7 | All six members | Demo of own module; slides | 0.15 each |
 | WBS-17.1 | All six members | Co-author | 0.042 each |
 | WBS-17.2 | Yavuz | Lead author | 0.075 |
-| WBS-17.2 | Furkan, Ahmed Said, Ahmet Yusuf, Najeeb, Amr | Contributor | 0.035 each |
+| WBS-17.2 | Furkan, Ahmed Said, Ahmet Yusuf, Najib, Amr | Contributor | 0.035 each |
 | WBS-17.3 | Ahmet Yusuf | Scrum Master: facilitates events, board | 0.016 |
-| WBS-17.3 | Yavuz, Furkan, Ahmed Said, Najeeb, Amr | Attends events; keeps own cards current | 0.010 each |
+| WBS-17.3 | Yavuz, Furkan, Ahmed Said, Najib, Amr | Attends events; keeps own cards current | 0.010 each |
 | WBS-17.4 | Yavuz | Organises meetings, writes minutes | 0.015 |
-| WBS-17.4 | Najeeb | Confirms requirements | 0.007 |
+| WBS-17.4 | Najib | Confirms requirements | 0.007 |
 | WBS-17.4 | Furkan | Answers technical questions | 0.007 |
 | WBS-17.5 | Yavuz | Burndown and reporting | 0.018 |
 | WBS-17.5 | Ahmet Yusuf | Effort and AI-token log | 0.012 |
 
-**Planned load per member (26 October – 25 December):**
+**Workload redistribution — Proposed — pending team agreement (Issue 2):**
 
-| Member | Assigned effort, 26 Oct – 25 Dec (person-hours) | Capacity at 14.5 h/week (person-hours) | Planned utilization |
+Issue 2 asks for a lower planned utilization for Yavuz, who had the highest load in v1.0 (109.4 h, 87%), five feature activities and most of the critical path. The proposal below uses only the data of this plan (efforts in Section 3, loads and weekly hours in this section, dependencies and floats in Section 5). The assignment, load and weekly tables below, the PERT chart, the CPM table and the Gantt chart of this version already show the proposal; it becomes the baseline when the team records its agreement in Issue 2. If the team does not agree, the v1.0 assignment and schedule are restored (12.1 and 12.2: Yavuz; 12.1 on 2026-12-12 to 2026-12-19; release on 2026-12-21).
+
+| Activity | v1.0 owner | Proposed owner (v1.1) | Reason |
 |---|---|---|---|
-| Yavuz Selim Yağlıca | 109.4 | 126.4 | 87% |
-| Furkan Yalçın | 96.2 | 126.4 | 76% |
-| Ahmed Said Gülşen | 95.2 | 126.4 | 75% |
-| Ahmet Yusuf Kurukız | 107.9 | 126.4 | 85% |
-| Najeeb Attar | 90.1 | 126.4 | 71% |
-| Amr Naweel Zuhdi Taweel | 101.3 | 126.4 | 80% |
-| **Team** | **600.2** | **758.1** | **79%** |
+| WBS-12.1 In-app notifications (te 0.30 man-weeks, 12.2 h) | Yavuz | Najib | In v1.0 it was the last link of Yavuz's serial queue on the critical path (9.1 → 6.1 → 10.1 → 12.1 → 15.6). It needs only the events of 6.1 and 9.1 (DoD of 6.1), not the knowledge search, so with another owner it can start when 6.1 ends (2026-12-02) instead of after 10.1. Najib had the lowest load (90.1 h, 71%) and 7.3 h and 8.2 h planned in weeks 6 and 7, after the admin panel (2.2) ends on 2026-11-30. Duration 9 days (0.24 FTE), so Najib stays at or below 14.5 h in every week. |
+| WBS-12.2 E-mail notifications *(contingent, no scheduled hours)* | Yavuz | Najib | It delivers the notifications of 12.1 by e-mail and reuses the e-mail integration that Najib builds in 1.1. |
 
-**Weekly load per member (hours planned day by day, all activities; availability 14.5 h):**
+*Not proposed:* moving a second feature activity of Yavuz (5.1, 6.1, 9.1 or 10.1; 12.2–14.6 h) would put its new owner at 85% or more (Ahmed Said 85–87%, Furkan 86–88%, Amr 90–92%, Najib 91–92%, Ahmet Yusuf 95–97%), at or above the highest v1.1 load (Ahmet Yusuf, 85%), and would not shorten the critical path, which after the move of 12.1 no longer runs through Yavuz's activities (Section 5.2). The knowledge search (10.1) in particular would take Najib above 14.5 h in week 6 at its planned dates, and Ahmed Said, its charter owner, already has 14.5 h planned in weeks 6 and 7.
+
+**Planned load per member (26 October – 25 December), v1.1 proposal:**
+
+| Member | Assigned effort, 26 Oct – 25 Dec (person-hours) | Capacity at 14.5 h/week (person-hours) | Planned utilization | v1.0 (for comparison) |
+|---|---|---|---|---|
+| Yavuz Selim Yağlıca | 97.3 | 126.4 | 77% | 109.4 h, 87% |
+| Furkan Yalçın | 96.2 | 126.4 | 76% | unchanged |
+| Ahmed Said Gülşen | 95.2 | 126.4 | 75% | unchanged |
+| Ahmet Yusuf Kurukız | 107.9 | 126.4 | 85% | unchanged |
+| Najib Attar | 102.3 | 126.4 | 81% | 90.1 h, 71% |
+| Amr Naweel Zuhdi Taweel | 101.3 | 126.4 | 80% | unchanged |
+| **Team** | **600.2** | **758.1** | **79%** | unchanged |
+
+**Weekly load per member (hours planned day by day, all activities; availability 14.5 h), v1.1 proposal:**
 
 | Member | W1 (26 Oct) | W2 (02 Nov) | W3 (09 Nov) | W4 (16 Nov) | W5 (23 Nov) | W6 (30 Nov) | W7 (07 Dec) | W8 (14 Dec) | W9 (21 Dec) |
 |---|---|---|---|---|---|---|---|---|---|
-| Yavuz | 14.2 | 6.6 | 13.6 | 14.5 | 12.9 | 14.4 | 13.4 | 13.6 | 6.2 |
-| Furkan | 14.4 | 14.1 | 4.5 | 13.4 | 12.7 | 14.5 | 13.5 | 3.8 | 5.3 |
-| Ahmed Said | 10.5 | 5.9 | 13.5 | 13.5 | 7.7 | 14.5 | 14.5 | 9.9 | 5.3 |
-| Ahmet Yusuf | 14.5 | 9.1 | 14.0 | 14.5 | 13.4 | 13.0 | 14.3 | 9.4 | 5.7 |
-| Najeeb | 13.7 | 6.5 | 13.8 | 14.5 | 14.5 | 7.3 | 8.2 | 5.6 | 6.1 |
-| Amr | 14.5 | 12.7 | 12.5 | 14.1 | 13.5 | 13.9 | 8.3 | 6.0 | 5.8 |
+| Yavuz | 14.2 | 6.6 | 13.6 | 14.5 | 12.9 | 14.4 | 10.4 | 5.9 | 4.8 |
+| Furkan | 14.4 | 14.1 | 4.5 | 13.4 | 12.7 | 14.5 | 13.5 | 5.2 | 3.9 |
+| Ahmed Said | 10.5 | 5.9 | 13.5 | 13.5 | 7.7 | 14.5 | 14.5 | 11.3 | 3.9 |
+| Ahmet Yusuf | 14.5 | 9.1 | 14.0 | 14.5 | 13.4 | 13.0 | 14.3 | 10.8 | 4.3 |
+| Najib | 13.7 | 6.5 | 13.8 | 14.5 | 14.5 | 14.1 | 13.6 | 7.0 | 4.7 |
+| Amr | 14.5 | 12.7 | 12.5 | 14.1 | 13.5 | 13.9 | 8.3 | 7.4 | 4.4 |
+
+*Weeks 1–6 are unchanged from v1.0 except Najib's week 6. The v1.1 changes are: the hours of 12.1 (12.2 h, spread evenly over its days) leave Yavuz's weeks 7–8 and enter Najib's weeks 6–7; the release activity 15.6 (2.8 h per member) moves from 20–21 December to 19–20 December, entirely into week 8. Rows may differ from the totals above by 0.1 h because of rounding.*
 
 **Availability or allocation constraints:**
 - Availability is 14.5 h per member per week (0.36 FTE) from 2026-10-26 to 2026-12-25.
-- Course documents are written in fixed windows before each deadline, so development slows down in those weeks.
-- The BLG411E midterm (2026-11-23) and other exams fall in Sprints 2–3. The reserves are the unused capacity (21%), the 3-day buffer before the delivery target and spare hours in weeks 8–9; after that, the descoping order of R-13 applies.
+- Course documents are written in fixed windows before each deadline, so fewer development hours are planned in those weeks (the weekly load table above shows each member's planned hours).
+- The BLG411E midterm (2026-11-23) and other exams fall in Sprints 2–3. The reserves are the unused capacity (21%), the 4-day buffer before the delivery target (v1.0: 3 days) and spare hours in weeks 8–9; after that, the descoping order of R-13 applies.
 - Members plan their own hours across the week, weekends included; public holidays are not modelled.
 
 ### 4.3 Development Process and Team Practices
@@ -457,10 +493,10 @@ Allocation (FTE) = the member's share of the activity's te ÷ the activity's dur
 flowchart LR
     START((Start<br/>26 Oct))
     FREEZE((Code freeze<br/>25 Dec))
-    REL((Release v1.0<br/>21 Dec))
+    REL((Release v1.0<br/>20 Dec))
     TGT((Delivery target<br/>24 Dec))
     W14_1["WBS-14.1<br/>Tech selection<br/>1.7 wk"]
-    W14_2["WBS-14.2<br/>CI/CD setup<br/>1.7 wk"]
+    W14_2["WBS-14.2<br/>CI/CD setup, fixed dates<br/>1.7 wk"]
     W14_7["WBS-14.7<br/>Schema design<br/>1.1 wk"]
     W14_4["WBS-14.4<br/>UI shell<br/>1.3 wk"]
     W15_1["WBS-15.1<br/>Test setup<br/>1.0 wk"]
@@ -492,7 +528,7 @@ flowchart LR
     W16_4["WBS-16.4<br/>Test Specification<br/>2.0 wk"]
     W16_6["WBS-16.6<br/>User guide<br/>1.4 wk"]
     W8_4["WBS-8.4<br/>Candidate ranking<br/>1.1 wk"]
-    W12_1["WBS-12.1<br/>Notifications<br/>1.1 wk"]
+    W12_1["WBS-12.1<br/>Notifications<br/>1.3 wk"]
     W15_5["WBS-15.5<br/>Perf and usability<br/>0.4 wk"]
     W15_6["WBS-15.6<br/>Stabilize and release<br/>0.3 wk"]
     W16_7["WBS-16.7<br/>Demo preparation<br/>0.6 wk"]
@@ -511,6 +547,7 @@ flowchart LR
     W1_2 -.-> W10_3
     W1_2 --> W15_2
     W2_2 --> W15_2
+    W2_2 -.-> W12_1
     W3_1 --> W4_2
     W3_1 --> W7_1
     W3_1 --> W11_1
@@ -526,6 +563,7 @@ flowchart LR
     W5_1 --> W13_2
     W6_1 --> W8_4
     W6_1 -.-> W10_1
+    W6_1 --> W12_1
     W6_1 --> W15_2
     W7_1 --> W8_2
     W7_1 -.-> W10_3
@@ -535,7 +573,6 @@ flowchart LR
     W8_4 --> W15_6
     W9_1 -.-> W6_1
     W9_1 --> W11_1
-    W10_1 -.-> W12_1
     W10_1 --> W15_5
     W11_1 --> W15_2
     W12_1 --> W15_6
@@ -589,88 +626,92 @@ flowchart LR
     class REL,TGT milestone;
     classDef critical fill:#ffe1e1,stroke:#d33,stroke-width:3px;
     classDef pinned fill:#e8f0ff,stroke:#4a6fd1,stroke-dasharray:4 3;
-    class W1_1,W5_1,W6_1,W9_1,W10_1,W12_1,W14_7,W14_3,W15_6 critical;
-    class W14_2,W16_1,W16_2,W16_3,W16_4,W16_7 pinned;
+    class W14_1,W14_2,W14_7,W14_3,W3_1,W14_5,W4_2,W8_2,W16_6,W15_6 critical;
+    class W16_1,W16_2,W16_3,W16_4,W16_7 pinned;
 ```
 
 **PERT notes (activity durations and dependencies):**
 - Nodes are the 37 baseline activities from 2026-10-26, with durations in weeks. The charter, this plan and the five level-of-effort activities (15.3, 16.5, 17.3, 17.4, 17.5) are not drawn.
 - Solid arrows are logical dependencies. Dashed arrows are resource dependencies: the same member finishes one activity before starting the next.
-- Red nodes form the critical path. Blue dashed nodes are fixed to dates: the course documents (by their deadlines) and the CI/CD setup 14.2 (26 October – 6 November).
-- The Release node (v1.0, 2026-12-21) is followed by the delivery target (24 December) and code freeze (25 December); demo preparation (16.7) follows the release.
-- Durations come from the resource-levelled schedule at 0.36 FTE per member. Links that a longer path already implies are not drawn; the calculation uses all 109 links.
+- Red nodes form the critical path and its zero-float branches. Blue dashed nodes are the course documents, fixed to their deadlines. The CI/CD setup 14.2 is also fixed to dates (26 October – 6 November), but it has zero float, so it is drawn red as critical.
+- The Release node (v1.0, 2026-12-20) is followed by the delivery target (24 December) and code freeze (25 December); demo preparation (16.7) follows the release on its fixed dates (22–25 December).
+- Durations come from the resource-levelled schedule at 0.36 FTE per member. Links that a longer path already implies are not drawn; the calculation uses them too.
+- v1.1 (Proposed — pending team agreement, Issue 2): notifications (12.1) belong to Najib. The resource link 10.1 ⇢ 12.1 (Yavuz's queue) is removed; the logical link 6.1 → 12.1 (12.1 uses the events that 6.1 emits) and the resource link 2.2 ⇢ 12.1 (Najib finishes the admin panel first) are drawn; 9.1 → 12.1 is implied by 9.1 ⇢ 6.1 → 12.1. 12.1 takes 9 days (1.3 weeks) at 0.24 FTE so that Najib stays at or below 14.5 h per week.
 - Parallel streams: documents (16.x), platform (14.x) and six module streams, the first of which start on 2026-11-07, once the schema, the database baseline and the UI shell are ready.
 
 ### 5.2 Critical Path and Total Project Duration
 
+*v1.1: this section reflects the workload redistribution that is **Proposed — pending team agreement (Issue 2)** (Section 4.2). In v1.0 the critical path was WBS-14.7 → 14.3 → 1.1 → 9.1 → 6.1 → 10.1 → 12.1 → 15.6 (parallel branch 14.3 → 5.1 → 9.1), 8.14 weeks long, with the release on 2026-12-21.*
+
 **Critical path (in activity order):**  
-`WBS-14.7 → WBS-14.3 → WBS-1.1 → WBS-9.1 → WBS-6.1 → WBS-10.1 → WBS-12.1 → WBS-15.6`  
-Parallel zero-float branch: WBS-14.3 → WBS-5.1 → WBS-9.1.
+`WBS-14.7 → WBS-14.3 → WBS-3.1 → WBS-4.2 → WBS-8.2 → WBS-16.6 → WBS-15.6`  
+Parallel zero-float branches: WBS-14.1 → WBS-14.5 → WBS-4.2; WBS-14.2 (date-pinned) → WBS-3.1 and WBS-14.2 → WBS-14.5.
 
 | Critical-path activity ID | Duration (weeks) | Reason it is critical |
 |---|---|---|
 | WBS-14.7 | 1.14 | Every module builds on the shared schema; the schema design starts the longest chain. |
+| WBS-14.1 *(parallel branch)* | 1.71 | The technology decision (LLM, embedding provider) comes before the AI services foundation. |
+| WBS-14.2 *(parallel branch, date-pinned)* | 1.71 | The CI/CD pipeline must exist before the first modules start; the profiles (3.1, on the critical path) and the AI services foundation (14.5) start on 2026-11-07, the day after it ends, so it has zero float. |
 | WBS-14.3 | 0.57 | The database baseline implements the schema before any module starts. |
-| WBS-1.1 | 1.14 | The Auth system (sessions, access control) is needed for posting in Questions & Discussions. |
-| WBS-5.1 *(parallel branch)* | 1.14 | Questions & Discussions need it for the opportunity boards, and its owner builds them next; the requirement schema also feeds the eligibility engine. |
-| WBS-9.1 | 1.29 | Needs the Auth system; its owner builds the applications workflow next. |
-| WBS-6.1 | 1.14 | Candidate ranking needs the applications of an opportunity; its owner builds the knowledge search next. |
-| WBS-10.1 | 1.43 | Indexes the Questions & Discussions posts; its owner builds the notifications next. |
-| WBS-12.1 | 1.14 | Notifications are built after the knowledge search by the same owner; the release waits for them. |
-| WBS-15.6 | 0.29 | The release starts only when every feature and test activity is done. |
+| WBS-3.1 | 1.14 | The CV summary extracts the CV that is uploaded in the profiles. |
+| WBS-14.5 *(parallel branch)* | 1.14 | The CV summary uses the LLM gateway (schema-validated LLM extraction) of the AI services foundation. |
+| WBS-4.2 | 1.29 | The AI search ranks opportunities with the CV summary. |
+| WBS-8.2 | 2.14 | The longest feature activity; its owner (Furkan) writes the README and OpenAPI part of 16.6 next. |
+| WBS-16.6 | 1.43 | Its two members (Furkan, Ahmet Yusuf) finish the user guide, README and API documentation before the release tasks. |
+| WBS-15.6 | 0.29 | The release starts only when every feature, test and documentation activity it waits for is done. |
 
-**Total project schedule:** **12 weeks**, from **2026-10-05** to **2026-12-28** (charter week to final presentation). The critical path from 2026-10-26 takes **8.1 weeks** and ends with the release on **2026-12-21**. A 3-day buffer follows before the 2026-12-24 delivery target (code freeze 2026-12-25). Demo preparation (16.7, about 3.5 h per member) runs in the same days, so about half of each member's time in that week stays free for a late release.
+**Total project schedule:** **12 weeks**, from **2026-10-05** to **2026-12-28** (charter week to final presentation). The critical path from 2026-10-26 takes **8.0 weeks** and ends with the release on **2026-12-20**. A 4-day buffer follows before the 2026-12-24 delivery target (code freeze 2026-12-25). Demo preparation (16.7, about 3.5 h per member) keeps its fixed dates (2026-12-22 to 2026-12-25), so about half of each member's time in that week stays free for a late release.
 
 **Critical-path explanation:**  
-A forward and a backward pass over the network (logical and resource links) give every activity its earliest and latest start. Float = latest start − earliest start, and the critical path is the longest chain with zero float. The main chain is schema design → database baseline → Auth system → Questions & Discussions → applications → knowledge search → notifications → release. After the Auth system it runs through Yavuz's queue: the boards, the applications workflow, the knowledge search over the boards and the notifications. One parallel branch also has zero float: the opportunities module (5.1) follows the database baseline and comes before Questions & Discussions (same owner, and the opportunity boards need it). In total, 9 of the 31 activities that are not fixed to dates have zero float. The AI-search chain (7.1, 8.2, 15.5) has one to five days of float. Any slip on a critical activity moves the release; the buffer absorbs up to 3 days, so the critical activities are reviewed at every sprint review (R-12 to R-14).
+A forward and a backward pass over the network (logical and resource links) give every activity its earliest and latest start; the backward pass starts from the release (end of 15.6) and the date-pinned documents keep their dates. Float = latest start − earliest start, and the critical path is the longest chain with zero float. The main chain is schema design → database baseline → profiles → CV summary → AI search → user guide and API documentation → release; the technology selection and the AI services foundation form a parallel zero-float branch into the CV summary. Moving notifications (12.1) to Najib takes them out of Yavuz's queue: they start when the applications workflow (6.1) ends, run in parallel with the knowledge search (10.1) and have 8 days of float, so the chain 9.1 → 6.1 → 10.1 ends 4 days before it would delay the release, and the longest chain becomes one day shorter (8.14 → 8.0 weeks). No single member owns the critical path any more: its activities belong to Amr, Yavuz and Furkan (14.7), Amr (14.3), Ahmet Yusuf (3.1, 4.2), Ahmed Said and Furkan (14.1, 14.5), Furkan (8.2), Furkan and Ahmet Yusuf (16.6) and all members (15.6). In total, 9 of the 31 activities that are not fixed to dates have zero float. The CI/CD setup (14.2, Furkan) is fixed to its dates and is also critical: it has zero float, and the profiles (3.1) and the AI services foundation (14.5) start the day after it ends. Near-critical with one day of float are the opportunities module (5.1), the eligibility search (7.1) and the chain data agent → chatbot → candidate ranking (13.2, 10.3, 8.4); Yavuz's activities after 5.1 (9.1, 6.1, 10.1) and the performance and usability checks (15.5) have 4 days. Any slip on a critical activity moves the release; the buffer absorbs up to 4 days, so the critical and near-critical activities are reviewed at every sprint review (R-12 to R-14).
 
 **Full CPM table** (weeks from 2026-10-26 = 0.00; ES/EF = earliest start/finish, LS/LF = latest start/finish):
 
 | WBS activity ID | Duration (wk) | ES | EF | LS | LF | Float (wk) | Critical |
 |---|---|---|---|---|---|---|---|
-| WBS-14.1 | 1.71 | 0.00 | 1.71 | 0.14 | 1.86 | 0.14 | No |
-| WBS-14.2 | 1.71 | 0.00 | 1.71 | 0.00 | 1.71 | 0.00 | Date-pinned |
+| WBS-14.1 | 1.71 | 0.00 | 1.71 | 0.00 | 1.71 | 0.00 | Yes |
+| WBS-14.2 | 1.71 | 0.00 | 1.71 | 0.00 | 1.71 | 0.00 | Yes (date-pinned) |
 | WBS-14.7 | 1.14 | 0.00 | 1.14 | 0.00 | 1.14 | 0.00 | Yes |
 | WBS-14.4 | 1.29 | 0.00 | 1.29 | 0.43 | 1.71 | 0.43 | No |
 | WBS-15.1 | 1.00 | 0.00 | 1.00 | 0.71 | 1.71 | 0.71 | No |
 | WBS-16.1 | 1.14 | 0.00 | 1.14 | 0.00 | 1.14 | 0.00 | Date-pinned |
 | WBS-14.3 | 0.57 | 1.14 | 1.71 | 1.14 | 1.71 | 0.00 | Yes |
 | WBS-16.2 | 3.00 | 1.14 | 4.14 | 1.14 | 4.14 | 0.00 | Date-pinned |
-| WBS-1.1 | 1.14 | 1.71 | 2.86 | 1.71 | 2.86 | 0.00 | Yes |
-| WBS-3.1 | 1.14 | 1.71 | 2.86 | 1.86 | 3.00 | 0.14 | No |
-| WBS-5.1 | 1.14 | 1.71 | 2.86 | 1.71 | 2.86 | 0.00 | Yes |
-| WBS-14.5 | 1.14 | 1.71 | 2.86 | 1.86 | 3.00 | 0.14 | No |
-| WBS-15.4 | 0.43 | 1.71 | 2.14 | 2.57 | 3.00 | 0.86 | No |
-| WBS-13.1 | 0.57 | 2.14 | 2.71 | 3.00 | 3.57 | 0.86 | No |
-| WBS-14.6 | 0.71 | 2.71 | 3.43 | 3.57 | 4.29 | 0.86 | No |
-| WBS-2.2 | 2.29 | 2.86 | 5.14 | 4.86 | 7.14 | 2.00 | No |
-| WBS-4.2 | 1.29 | 2.86 | 4.14 | 3.00 | 4.29 | 0.14 | No |
-| WBS-7.1 | 1.14 | 2.86 | 4.00 | 3.14 | 4.29 | 0.29 | No |
-| WBS-9.1 | 1.29 | 2.86 | 4.14 | 2.86 | 4.14 | 0.00 | Yes |
-| WBS-13.2 | 1.29 | 3.29 | 4.57 | 3.57 | 4.86 | 0.29 | No |
-| WBS-1.2 | 0.57 | 3.43 | 4.00 | 4.29 | 4.86 | 0.86 | No |
-| WBS-4.1 | 1.43 | 4.14 | 5.57 | 4.86 | 6.29 | 0.71 | No |
-| WBS-6.1 | 1.14 | 4.14 | 5.29 | 4.14 | 5.29 | 0.00 | Yes |
-| WBS-8.2 | 2.14 | 4.14 | 6.29 | 4.29 | 6.43 | 0.14 | No |
+| WBS-1.1 | 1.14 | 1.71 | 2.86 | 2.29 | 3.43 | 0.57 | No |
+| WBS-3.1 | 1.14 | 1.71 | 2.86 | 1.71 | 2.86 | 0.00 | Yes |
+| WBS-5.1 | 1.14 | 1.71 | 2.86 | 1.86 | 3.00 | 0.14 | No |
+| WBS-14.5 | 1.14 | 1.71 | 2.86 | 1.71 | 2.86 | 0.00 | Yes |
+| WBS-15.4 | 0.43 | 1.71 | 2.14 | 2.43 | 2.86 | 0.71 | No |
+| WBS-13.1 | 0.57 | 2.14 | 2.71 | 2.86 | 3.43 | 0.71 | No |
+| WBS-14.6 | 0.71 | 2.71 | 3.43 | 3.43 | 4.14 | 0.71 | No |
+| WBS-2.2 | 2.29 | 2.86 | 5.14 | 4.14 | 6.43 | 1.29 | No |
+| WBS-4.2 | 1.29 | 2.86 | 4.14 | 2.86 | 4.14 | 0.00 | Yes |
+| WBS-7.1 | 1.14 | 2.86 | 4.00 | 3.00 | 4.14 | 0.14 | No |
+| WBS-9.1 | 1.29 | 2.86 | 4.14 | 3.43 | 4.71 | 0.57 | No |
+| WBS-13.2 | 1.29 | 3.29 | 4.57 | 3.43 | 4.71 | 0.14 | No |
+| WBS-1.2 | 0.57 | 3.43 | 4.00 | 4.14 | 4.71 | 0.71 | No |
+| WBS-4.1 | 1.43 | 4.14 | 5.57 | 4.71 | 6.14 | 0.57 | No |
+| WBS-6.1 | 1.14 | 4.14 | 5.29 | 4.71 | 5.86 | 0.57 | No |
+| WBS-8.2 | 2.14 | 4.14 | 6.29 | 4.14 | 6.29 | 0.00 | Yes |
 | WBS-16.3 | 2.00 | 4.14 | 6.14 | 4.14 | 6.14 | 0.00 | Date-pinned |
-| WBS-11.1 | 1.14 | 4.57 | 5.71 | 6.00 | 7.14 | 1.43 | No |
-| WBS-10.3 | 1.86 | 4.57 | 6.43 | 4.86 | 6.71 | 0.29 | No |
-| WBS-10.1 | 1.43 | 5.29 | 6.71 | 5.29 | 6.71 | 0.00 | Yes |
-| WBS-8.3 | 1.14 | 5.57 | 6.71 | 6.29 | 7.43 | 0.71 | No |
-| WBS-15.2 | 0.71 | 5.71 | 6.43 | 7.14 | 7.86 | 1.43 | No |
+| WBS-11.1 | 1.14 | 4.57 | 5.71 | 5.86 | 7.00 | 1.29 | No |
+| WBS-10.3 | 1.86 | 4.57 | 6.43 | 4.71 | 6.57 | 0.14 | No |
+| WBS-10.1 | 1.43 | 5.29 | 6.71 | 5.86 | 7.29 | 0.57 | No |
+| WBS-12.1 | 1.29 | 5.29 | 6.57 | 6.43 | 7.71 | 1.14 | No |
+| WBS-8.3 | 1.14 | 5.57 | 6.71 | 6.14 | 7.29 | 0.57 | No |
+| WBS-15.2 | 0.71 | 5.71 | 6.43 | 7.00 | 7.71 | 1.29 | No |
 | WBS-16.4 | 2.00 | 6.14 | 8.14 | 6.14 | 8.14 | 0.00 | Date-pinned |
-| WBS-16.6 | 1.43 | 6.29 | 7.71 | 6.43 | 7.86 | 0.14 | No |
-| WBS-8.4 | 1.14 | 6.43 | 7.57 | 6.71 | 7.86 | 0.29 | No |
-| WBS-12.1 | 1.14 | 6.71 | 7.86 | 6.71 | 7.86 | 0.00 | Yes |
-| WBS-15.5 | 0.43 | 6.71 | 7.14 | 7.43 | 7.86 | 0.71 | No |
-| WBS-15.6 | 0.29 | 7.86 | 8.14 | 7.86 | 8.14 | 0.00 | Yes |
+| WBS-16.6 | 1.43 | 6.29 | 7.71 | 6.29 | 7.71 | 0.00 | Yes |
+| WBS-8.4 | 1.14 | 6.43 | 7.57 | 6.57 | 7.71 | 0.14 | No |
+| WBS-15.5 | 0.43 | 6.71 | 7.14 | 7.29 | 7.71 | 0.57 | No |
+| WBS-15.6 | 0.29 | 7.71 | 8.00 | 7.71 | 8.00 | 0.00 | Yes |
 | WBS-16.7 | 0.57 | 8.14 | 8.71 | 8.14 | 8.71 | 0.00 | Date-pinned |
 
 ### 5.3 Gantt Chart — Project Timeline
 
 ```mermaid
 gantt
-    title SynapseITU baseline schedule at 14.5 h per member per week
+    title SynapseITU schedule v1.1 (Issue 2 redistribution, proposed) at 14.5 h per member per week
     dateFormat YYYY-MM-DD
     axisFormat %d %b
     todayMarker off
@@ -692,33 +733,33 @@ gantt
     WBS-16.3 Design Specification :w16_3, 2026-11-24, 14d
     WBS-16.4 Test Specification :w16_4, 2026-12-08, 14d
     WBS-16.5 AI usage and GenAI error report :w16_5, 2026-10-26, 61d
-    WBS-16.6 User guide :w16_6, 2026-12-09, 10d
+    WBS-16.6 User guide :crit, w16_6, 2026-12-09, 10d
     WBS-16.7 Demo preparation :w16_7, 2026-12-22, 4d
     section Platform
-    WBS-14.1 Tech selection :w14_1, 2026-10-26, 12d
+    WBS-14.1 Tech selection :crit, w14_1, 2026-10-26, 12d
     WBS-14.7 Schema design :crit, w14_7, 2026-10-26, 8d
-    WBS-14.2 CI/CD setup :w14_2, 2026-10-26, 12d
+    WBS-14.2 CI/CD setup :crit, w14_2, 2026-10-26, 12d
     WBS-14.3 DB baseline :crit, w14_3, 2026-11-03, 4d
     WBS-14.4 UI shell :w14_4, 2026-10-26, 9d
-    WBS-14.5 AI foundation :w14_5, 2026-11-07, 8d
+    WBS-14.5 AI foundation :crit, w14_5, 2026-11-07, 8d
     WBS-14.6 Staging and CD :w14_6, 2026-11-14, 5d
-    section Auth and administration - Najeeb
-    WBS-1.1 Auth system :crit, w1_1, 2026-11-07, 8d
+    section Auth administration and notifications - Najib
+    WBS-1.1 Auth system :w1_1, 2026-11-07, 8d
     WBS-2.2 Admin panel :w2_2, 2026-11-15, 16d
+    WBS-12.1 Notifications :w12_1, 2026-12-02, 9d
     section Profiles CV and discovery - Ahmet Yusuf
-    WBS-3.1 Profiles :w3_1, 2026-11-07, 8d
-    WBS-4.2 CV summary :w4_2, 2026-11-15, 9d
+    WBS-3.1 Profiles :crit, w3_1, 2026-11-07, 8d
+    WBS-4.2 CV summary :crit, w4_2, 2026-11-15, 9d
     WBS-4.1 CV Adaptor :w4_1, 2026-11-24, 10d
     WBS-8.3 Discovery :w8_3, 2026-12-04, 8d
-    section Opportunities Q and D knowledge search and notifications - Yavuz
-    WBS-5.1 Opportunities :crit, w5_1, 2026-11-07, 8d
-    WBS-9.1 Questions and Discussions :crit, w9_1, 2026-11-15, 9d
-    WBS-6.1 Applications :crit, w6_1, 2026-11-24, 8d
-    WBS-10.1 Knowledge search :crit, w10_1, 2026-12-02, 10d
-    WBS-12.1 Notifications :crit, w12_1, 2026-12-12, 8d
+    section Opportunities Q and D and knowledge search - Yavuz
+    WBS-5.1 Opportunities :w5_1, 2026-11-07, 8d
+    WBS-9.1 Questions and Discussions :w9_1, 2026-11-15, 9d
+    WBS-6.1 Applications :w6_1, 2026-11-24, 8d
+    WBS-10.1 Knowledge search :w10_1, 2026-12-02, 10d
     section Eligibility and AI search - Furkan
     WBS-7.1 Eligibility search :w7_1, 2026-11-15, 8d
-    WBS-8.2 AI search :w8_2, 2026-11-24, 15d
+    WBS-8.2 AI search :crit, w8_2, 2026-11-24, 15d
     section Verification chatbot and ranking - Ahmed Said
     WBS-1.2 E-mail verification :w1_2, 2026-11-19, 4d
     WBS-10.3 Chatbot :w10_3, 2026-11-27, 13d
@@ -733,7 +774,7 @@ gantt
     WBS-15.4 Eval harness :w15_4, 2026-11-07, 3d
     WBS-15.2 E2E suite :w15_2, 2026-12-05, 5d
     WBS-15.5 Perf and usability :w15_5, 2026-12-12, 3d
-    WBS-15.6 Stabilize and release :crit, w15_6, 2026-12-20, 2d
+    WBS-15.6 Stabilize and release :crit, w15_6, 2026-12-19, 2d
     section Course milestones
     TA meeting 2 :milestone, m0, 2026-10-26, 0d
     Req Spec due :milestone, m1, 2026-11-02, 0d
@@ -747,10 +788,10 @@ gantt
 ```
 
 **Schedule consistency check:**
-- The WBS, estimates, assignments, PERT chart and Gantt chart are generated from one activity list, so IDs, efforts, owners and dates match.
+- The WBS, estimates, assignments, PERT chart and Gantt chart are generated from one activity list, so IDs, efforts, owners and dates match. The v1.1 changes (owner of 12.1 and 12.2, dates of 12.1 and 15.6) were applied to all of them and the forward and backward passes were recomputed.
 - Every activity starts between its earliest and latest start (ES ≤ start ≤ LS); no float is negative.
-- No member goes above 14.5 h in any week (maximum 14.5 h); team utilization is 79%.
-- Course documents finish on their deadlines (2026-11-02, 2026-11-23, 2026-12-07, 2026-12-21); v1.0 is released on 2026-12-21, 3 days before the 2026-12-24 delivery target (4 before code freeze); demo material is ready on 2026-12-25.
+- No member goes above 14.5 h in any week (maximum 14.5 h); team utilization is 79%; in the v1.1 proposal (Issue 2) the highest member utilization is 85% (Ahmet Yusuf) and Yavuz's is 77% (v1.0: 87%).
+- Course documents finish on their deadlines (2026-11-02, 2026-11-23, 2026-12-07, 2026-12-21); v1.0 is released on 2026-12-20, 4 days before the 2026-12-24 delivery target (5 before code freeze); demo material is ready on 2026-12-25.
 - Effort matches duration: for every activity, allocation × duration × 40 h equals its te, up to rounding.
 
 ---
@@ -764,7 +805,7 @@ Probability and impact are scored from 1 (lowest) to 5 (highest); score = probab
 | Risk ID | Risk description | Probability (1–5) | Impact (1–5) | Risk score (P × I) | Affected WBS activity ID(s) |
 |---|---|---|---|---|---|
 | R-01 | Merge conflicts and integration breakage between parallel modules (credit and notification hooks, shared database tables, late schema changes). | 2 | 3 | 6 | WBS-14.2, 14.7, 11.1, 12.1, 15.2 |
-| R-02 | A member is unavailable for a week or more (illness, personal reasons). | 2 | 4 | 8 | Activities of the absent member, above all the critical activities WBS-14.7, 14.3, 1.1, 5.1, 9.1, 6.1, 10.1, 12.1, 15.6 |
+| R-02 | A member is unavailable for a week or more (illness, personal reasons). | 2 | 4 | 8 | Activities of the absent member, above all the critical activities WBS-14.1, 14.2, 14.7, 14.3, 3.1, 14.5, 4.2, 8.2, 16.6, 15.6 |
 | R-03 | Personal-data breach or KVKK non-compliance (CVs, e-mail addresses). | 2 | 5 | 10 | WBS-1.1, 4.1, 4.2, 8.2, 14.5, 14.6, 15.3 |
 | R-04 | Not enough labelled data for a meaningful matching evaluation. | 3 | 2 | 6 | WBS-15.4, 8.2 |
 | R-05 | AI and data service limits: LLM or embedding API rate limits or outages (Claude API, Voyage) during indexing or the demo, or public university pages that change their layout or block the data agent. | 3 | 3 | 9 | WBS-14.5, 8.2, 10.1, 10.3, 13.2 |
@@ -774,9 +815,9 @@ Probability and impact are scored from 1 (lowest) to 5 (highest); score = probab
 | R-09 | LLM output errors: wrong rankings or explanations, invented skills or interests in CV summaries, invented experience in CV Adaptor suggestions, chatbot answers not grounded in platform data, wrongly extracted university records, irrelevant or wrongly cited knowledge-search snippets. | 3 | 4 | 12 | WBS-4.1, 4.2, 8.2, 8.3, 8.4, 10.1, 10.3, 13.2 |
 | R-10 | Defects or security flaws introduced by AI-generated code. | 4 | 3 | 12 | All implementation activities; WBS-15.2, 15.3 |
 | R-11 | Customer (TA) changes or re-prioritises requirements. | 4 | 3 | 12 | WBS-16.1, 16.2 and the affected implementation activities |
-| R-12 | Member availability falls below the planned 14.5 h/week (exams, internships, other courses). | 4 | 4 | 16 | All activities; critical activities WBS-14.7, 14.3, 1.1, 5.1, 9.1, 6.1, 10.1, 12.1, 15.6 |
+| R-12 | Member availability falls below the planned 14.5 h/week (exams, internships, other courses). | 4 | 4 | 16 | All activities; critical activities WBS-14.1, 14.2, 14.7, 14.3, 3.1, 14.5, 4.2, 8.2, 16.6, 15.6 |
 | R-13 | Essential scope exceeds team capacity (estimates are early in the cone of uncertainty; FPA gives a higher upper bound). | 4 | 5 | 20 | All functional activities; WBS-15.6 |
-| R-14 | AI productivity is lower than planned: implementation and testing need more than 0.35 and 0.50 of the no-AI effort (Section 3). | 4 | 5 | 20 | All implementation and testing activities; critical activities WBS-14.7, 14.3, 1.1, 5.1, 9.1, 6.1, 10.1, 12.1, 15.6 |
+| R-14 | AI productivity is lower than planned: implementation and testing need more than 0.35 and 0.50 of the no-AI effort (Section 3). | 4 | 5 | 20 | All implementation and testing activities; critical activities WBS-14.1, 14.2, 14.7, 14.3, 3.1, 14.5, 4.2, 8.2, 16.6, 15.6 |
 
 | Impact ↓ / Probability → | 1 (Very low) | 2 (Low) | 3 (Medium) | 4 (High) | 5 (Very high) |
 |---|---|---|---|---|---|
@@ -791,18 +832,30 @@ Probability and impact are scored from 1 (lowest) to 5 (highest); score = probab
 | Risk ID | Related WBS activity ID(s) | Mitigation / avoidance strategy | Responsible member | Contingency if risk occurs |
 |---|---|---|---|---|
 | R-01 | WBS-14.2, 14.7, 11.1, 12.1, 15.2 | Feature-based folders, small PRs, CI on every PR, one schema design reviewed by every module owner with versioned migrations (WBS-14.7), contract tests for shared APIs, shared interfaces frozen after Sprint 2. | Furkan (GitHub Workflow Manager) | Integration day at the end of the sprint; revert to the last green build; only additive schema changes after Sprint 2. |
-| R-02 | Activities of the absent member, above all the critical activities WBS-14.7, 14.3, 1.1, 5.1, 9.1, 6.1, 10.1, 12.1, 15.6 | Paired reviewer per module knows the code; decisions are recorded in PRs and on the board. | Ahmet Yusuf (Scrum Master) | Paired reviewer takes over; apply the descoping order of R-13 to that module. |
-| R-03 | WBS-1.1, 4.1, 4.2, 8.2, 14.5, 14.6, 15.3 | Consent before CV processing (naming the LLM, embedding and tracing providers), private storage, basic authorization tests, secrets outside the repository, no unnecessary personal data in logs, prompts or traces (personal-data rules of the WBS-15.3 guideline), Voyage AI's option to train on our data turned off, OWASP scan. | Najeeb (QA Tester) | Disable CV upload, rotate secrets, purge affected data, inform the course staff. |
+| R-02 | Activities of the absent member, above all the critical activities WBS-14.1, 14.2, 14.7, 14.3, 3.1, 14.5, 4.2, 8.2, 16.6, 15.6 | Paired reviewer per module knows the code; decisions are recorded in PRs and on the board. | Ahmet Yusuf (Scrum Master) | Paired reviewer takes over; apply the descoping order of R-13 to that module. |
+| R-03 | WBS-1.1, 4.1, 4.2, 8.2, 14.5, 14.6, 15.3 | Consent before CV processing (naming the LLM, embedding and tracing providers), private storage, basic authorization tests, secrets outside the repository, no unnecessary personal data in logs, prompts or traces (personal-data rules of the WBS-15.3 guideline), Voyage AI's option to train on our data turned off, OWASP scan. | Najib (QA Tester) | Disable CV upload, rotate secrets, purge affected data, inform the course staff. |
 | R-04 | WBS-15.4, 8.2 | Build the labelled set in Sprints 1-2, before the AI search starts (test-first), with AI pre-labelling and human verification; target 20 profiles × 15 opportunities. | Amr (Test Manager) | Report a smaller, qualitative evaluation and state the limitation. |
 | R-05 | WBS-14.5, 8.2, 10.1, 10.3, 13.2 | Caching of matching results and embeddings, indexing in batches kept under the rate limits, retries with back-off in the LLM gateway, a small model for simple extraction, credit limits; the data agent retries a failed source, keeps the last good records and reports the failure to the admin. | Ahmed Said (AI Manager) | Fall back to full-text retrieval (1.4 Reliability); embed locally with `voyage-4-nano` and upload the vectors; lower the monthly AI limit or switch a feature off in the admin panel (WBS-2.2); limit the data agent to the dummy university's API. |
 | R-06 | WBS-1.1, 1.2 | Verified sending domain (SPF/DKIM); test with real @itu.edu.tr addresses in Sprint 2. | Ahmed Said (DevOps Manager) | Admin-approved verification for the demo; document the limitation. |
 | R-07 | WBS-14.1, 14.5, 14.6, 15.1, 8.2 | Spikes in Sprint 1, shared notes, pair sessions, AI assistants for onboarding. | Furkan (Designer-Architect) | Replace the tool with a simpler alternative (e.g., plain logging instead of Langfuse). |
 | R-08 | WBS-14.6, 15.5, 15.6 | Walking skeleton on staging in Sprint 2 (WBS-14.6), infrastructure as code, staging mirrors production, Next.js built in CI, 2 GB swap, IAM access for at least two members per account. | Ahmed Said (DevOps Manager) | Move the affected environment to a 4 GB instance (`c7i-flex.large`) for the remaining weeks; as a last resort, run the demo from the local Docker Compose stack. |
 | R-09 | WBS-4.1, 4.2, 8.2, 8.3, 8.4, 10.1, 10.3, 13.2 | Retrieval-grounded prompts, JSON-schema validation, no-fabrication tests, labelled samples; the chatbot answers only through tools over platform data and cites the records it used; every university record keeps its source link; humans make every accept/reject decision. | Ahmed Said (AI Manager) | Fall back to rule + retrieval results without generated text; switch the affected AI feature off in the admin panel (WBS-2.2). |
-| R-10 | All implementation activities; WBS-15.2, 15.3 | Human review of every PR (no direct commits to main) with the security checklist of WBS-15.3, tests first, CI checks, static analysis, AI-usage field in the PR template. | Najeeb (QA Tester) | Revert the PR, add a regression test, log the error type in the GenAI report (WBS-16.5). |
+| R-10 | All implementation activities; WBS-15.2, 15.3 | Human review of every PR (no direct commits to main) with the security checklist of WBS-15.3, tests first, CI checks, static analysis, AI-usage field in the PR template. | Najib (QA Tester) | Revert the PR, add a regression test, log the error type in the GenAI report (WBS-16.5). |
 | R-11 | WBS-16.1, 16.2 and the affected implementation activities | Confirm the requirements list and its priorities at every TA meeting; handle changes as issues with an impact estimate; keep the contingent backlog of Desirable and Optional items. | Yavuz (Project Manager) | Swap the changed item for an equal-size item from the descoping order. |
-| R-12 | All activities; critical activities WBS-14.7, 14.3, 1.1, 5.1, 9.1, 6.1, 10.1, 12.1, 15.6 | Weekly burndown, re-estimation at every sprint review, lean ceremonies, unused team capacity and the buffer before the delivery target. | Ahmet Yusuf (Scrum Master) | Use the spare hours of weeks 8–9 and the buffer before the delivery target for critical-path work first, then apply the descoping order (R-13). |
-| R-13 | All functional activities; WBS-15.6 | Three-point estimates, planned team utilization of about 79% with no member above 87%, critical-path monitoring, re-estimation after each sprint. | Yavuz (Project Manager) | Proposed descoping order, each step agreed with the TA: WBS-8.3 → 8.4 → deadline reminders in 12.1 → question boost and transfer in 11.1 → 10.1. |
-| R-14 | All implementation and testing activities; critical activities WBS-14.7, 14.3, 1.1, 5.1, 9.1, 6.1, 10.1, 12.1, 15.6 | AI agents draft code and tests from the DoD and the Gherkin scenarios, and members review them; effort and token logs per activity; the logged effort is compared with the planned ratios at every sprint review, starting with Sprint 1 (the schedule tolerates only about 5% more implementation and testing effort). | Ahmed Said (AI Manager) | If Sprint 1 effort on implementation and testing is more than 5% above plan: re-baseline at the Sprint 1 review and apply the descoping order of R-13, starting with steps (2) and (3), which together shorten the critical path. |
+| R-12 | All activities; critical activities WBS-14.1, 14.2, 14.7, 14.3, 3.1, 14.5, 4.2, 8.2, 16.6, 15.6 | Weekly burndown, re-estimation at every sprint review, lean ceremonies, unused team capacity and the buffer before the delivery target. | Ahmet Yusuf (Scrum Master) | Use the spare hours of weeks 8–9 and the buffer before the delivery target for critical-path work first, then apply the descoping order (R-13). |
+| R-13 | All functional activities; WBS-15.6 | Three-point estimates, planned team utilization of about 79% with no member above 85% (v1.1 proposal, Issue 2; v1.0: 87%), critical-path monitoring, re-estimation after each sprint. | Yavuz (Project Manager) | Proposed descoping order, each step agreed with the TA: WBS-8.3 → 8.4 → deadline reminders in 12.1 → question boost and transfer in 11.1 → 10.1; v1.1 starts at step (2), WBS-8.4. |
+| R-14 | All implementation and testing activities; critical activities WBS-14.1, 14.2, 14.7, 14.3, 3.1, 14.5, 4.2, 8.2, 16.6, 15.6 | AI agents draft code and tests from the DoD and the Gherkin scenarios, and members review them; effort and token logs per activity; the logged effort is compared with the planned ratios at every sprint review, starting with Sprint 1 (the v1.0 schedule tolerated only about 5% more implementation and testing effort; v1.1 tolerance remains unquantified pending a new CPM/resource-leveling run). | Ahmed Said (AI Manager) | If Sprint 1 effort on implementation and testing is more than 5% above plan: re-baseline at the Sprint 1 review and apply the descoping order of R-13 (in v1.0 starting with steps (2) and (3), which shortened the v1.0 critical path; starting step for v1.1: step (2), WBS-8.4 candidate ranking, after essential flows are protected and with a re-baseline before execution). |
 
-**Descoping order** (contingency for R-12, R-13 and R-14; to be agreed with the team and the customer): (1) WBS-8.3 CV-summary search and discovery, which overlap with the AI search; (2) WBS-8.4 candidate ranking; (3) deadline reminders in WBS-12.1; (4) question boost and credit transfer in WBS-11.1; (5) WBS-10.1 knowledge search. Steps (2) and (3) together shorten the critical path: the reminders belong to the notifications (12.1), its last feature activity, and the candidate ranking (8.4) has little float, so it would become critical as soon as 12.1 gets shorter. With both steps, even 10% more implementation and testing effort moves the release only to 2026-12-23, still before the delivery target (reminders taken as a third of WBS-12.1). Steps (1) and (4) free capacity elsewhere; step (5) also shortens the critical path. Each step is recorded as a change request and moves the item to the Desirable list.
+**Descoping order** (contingency for R-12, R-13 and R-14; to be agreed with the team and the customer): (1) WBS-8.3 CV-summary search and discovery, which overlap with the AI search; (2) WBS-8.4 candidate ranking; (3) deadline reminders in WBS-12.1; (4) question boost and credit transfer in WBS-11.1; (5) WBS-10.1 knowledge search. In v1.0, steps (2) and (3) together shortened the critical path: the reminders belonged to the notifications (12.1), its last feature activity, and the candidate ranking (8.4) had little float, so it would have become critical as soon as 12.1 got shorter; with both steps, even 10% more implementation and testing effort moved the release only to 2026-12-23 (reminders taken as a third of WBS-12.1); step (5) also shortened the critical path. In the v1.1 proposal (Issue 2) none of the five items is on the critical path (Section 5.2): 8.4 has one day of float, 10.1 four days, 12.1 eight days, so every step frees capacity but none shortens the critical path directly. For v1.1, retain the stated optional-feature descoping order as the initial resource-capacity contingency; begin with step (2), WBS-8.4, if the 5% overrun trigger is reached. Before action, the project lead must verify current dependencies, obtain customer approval for moving a feature to Desirable and re-baseline the remaining CPM/Gantt; no shortening of the critical path is assumed merely from descoping. The +10% sensitivity is established for v1.0 only. Recompute the resource-levelled v1.1 schedule before stating a revised release date or buffer under that scenario. Each step is recorded as a change request and moves the item to the Desirable list.
+
+---
+
+## Change log (changes since v1.0)
+
+| Version | Date | Change | Linked issue |
+|---|---|---|---|
+| 1.0 | 2026-10-25 | First release of the project plan (`project-plan-v1.0`). | — |
+| 1.1 | 2026-11-07 | Measurable wording: the vague performance and quality statements of v1.0 ("stay fast", "respond quickly", "load quickly", "short-lived", "basic accessibility", "high uptime", "real time", "slows down", "responsive") are rewritten as measurable criteria with a metric, a unit and a measurement condition, or linked to one (Sections 1.1, 1.2, 1.4, 2, 4.2); the numeric thresholds were agreed as targets in the 2026-11-08 Issue 3 amendment and entered into Section 1.4 as MC-01–MC-15. The old Issue 1 wording is retained only as historical context. | Issue 1 (TA/customer meeting, 30 October 2026) |
+| 1.1 | 2026-11-07 | Workload redistribution, **Proposed — pending team agreement (Issue 2)**: in-app notifications (WBS-12.1) and the contingent e-mail notifications (WBS-12.2) move from Yavuz to Najib. Yavuz's planned load falls from 109.4 h (87%) to 97.3 h (77%); Najib's rises from 90.1 h (71%) to 102.3 h (81%); no member goes above 14.5 h in any week. The critical path no longer runs through Yavuz's queue and is one day shorter: v1.0 is released on 2026-12-20 instead of 2026-12-21 (buffer 4 days instead of 3). Updated consistently: Section 2 ownership notes, Section 3 contingent owners and capacity check, Section 4.1 roles, Section 4.2 assignment, load and weekly tables (with the v1.0 fallback if the team does not agree), Section 5.1 PERT chart, Section 5.2 critical path and CPM table, Section 5.3 Gantt chart, Section 6 risk texts. | Issue 2 (customer meeting, 30 October 2026) |
+| 1.1 | 2026-11-07 | WBS-14.2 (CI/CD setup) marked critical: it has zero float and feeds the critical WBS-3.1 (and the zero-float WBS-14.5); it stays fixed to its dates. Updated: Section 5.1 PERT chart, Section 5.2 critical path, critical-path table and CPM table, Section 5.3 Gantt chart, risks R-02, R-12 and R-14 in Section 6. Schedule unchanged: no date, duration, float, effort, owner or link changed. | Customer feedback (30 October 2026) |
+| 1.1 (Issue 3) | 2026-11-08 | Agreed target values for MC-01–MC-15 and initial credit values (Section 1.4; functional values in the Requirements Specification). Decisions that implement steps of the use-case document: Admin UI for manual verification, the audit log and the university import status in WBS-2.2 (with 1.2 and 13.2); additional notification events in WBS-12.1; follow/unfollow in WBS-5.2; measurement and recording of the targets in WBS-15.2, 15.5 and 16.4 (MC-14 window 2026-12-14 to 2026-12-20); descoping starts at step (2), WBS-8.4 (R-13, R-14). The added scope is not yet re-estimated; no date, owner or effort changed. These are targets, not measured results. | Issue 3 |
