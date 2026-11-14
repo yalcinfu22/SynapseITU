@@ -4,6 +4,19 @@ Course project repository for SynapseITU.
 
 Project documentation, team roles, and the project charter are prepared through pull requests.
 
+## Team
+
+The Goats, BLG411E Software Engineering, Fall 2026. Roles from the Project Plan (Section 4.1).
+
+| Member | Development role (owned module) | Technical role | Management role |
+| --- | --- | --- | --- |
+| Yavuz Selim Yağlıca | Opportunities, Applications, Questions & Discussions, Knowledge Search | Backend & API Manager | Project Manager |
+| Furkan Yalçın | Eligibility & AI Search | Designer-Architect | GitHub Workflow Manager |
+| Ahmed Said Gülşen | Chatbot & Candidate Ranking | AI Manager | DevOps Manager |
+| Ahmet Yusuf Kurukız | Profiles, CV Adaptor & Discovery | UI Manager | Scrum Master |
+| Najib Attar | Authentication, Administration & Notifications | QA Tester | Requirement Document Manager |
+| Amr Naweel Zuhdi Taweel | University Data Agent & Credits | Database Manager | Test Manager |
+
 ## Repository layout
 
 | Path | Contents |
