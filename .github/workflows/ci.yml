@@ -1,23 +1,41 @@
 name: CI
 
+# WBS-14.2: every pull request into dev or main runs lint and tests, inside Docker, with the
+# same Dockerfiles as the local Docker check.
 on:
   pull_request:
     branches: [dev, main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  tests:
-    name: Docker tests
+  backend:
+    name: Backend lint and tests
     runs-on: ubuntu-latest
-
     steps:
-      - name: Check out code
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+      - name: Ruff lint, format check and pytest (Docker test stage)
+        run: docker build -f backend/Dockerfile --target test -t synapseitu-backend:test .
 
-      - name: Build test image
-        run: docker build -t synapseitu-tests .
+  frontend:
+    name: Frontend lint, typecheck and tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: ESLint, tsc and Vitest (Docker test stage)
+        run: docker build -f frontend/Dockerfile --target test -t synapseitu-frontend:test .
 
-      - name: Run tests
-        run: docker run --rm synapseitu-tests
+  images:
+    name: Production images build
+    runs-on: ubuntu-latest
+    needs: [backend, frontend]
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker build -f backend/Dockerfile -t synapseitu-backend .
+      - run: docker build -f frontend/Dockerfile -t synapseitu-frontend .
