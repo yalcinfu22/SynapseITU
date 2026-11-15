@@ -5,13 +5,14 @@
 Use **Qwen3-Embedding-0.6B** with 1024 dimensions. Use **bge-m3** as the fallback model.
 
 - Staging and production send requests to DeepInfra. This is the same provider as the LLM (ADR-0001).
-- Developers can run the same model on their own GPU.
+- Developers can run the same model on their own computer. A GPU is not necessary.
 
 | Status | Date | Activity | Owners |
 |---|---|---|---|
 | Proposed | 2026-11-13 | WBS-14.1 (issue #25) | Options and test calls: Ahmed Said. This record: Furkan |
+| Accepted | 2026-11-15 | WBS-14.1 (issue #25) | Furkan and Ahmed Said |
 
-This decision replaces Voyage AI, which the Project Plan specifies. The team and the TA must approve it.
+This decision replaces Voyage AI, which the Project Plan specifies. We report the change to the TA and record it in the change log of the Project Plan.
 
 Terms:
 
@@ -59,12 +60,20 @@ The servers are `t3.small` (2 CPUs, 2 GB memory, no GPU). On a laptop CPU, which
 - Voyage uses customer data for training. To stop this, the account must give a payment method.
 - It adds one more data provider to the CV consent text.
 
+### 5. Spike on a developer computer (issue #25)
+
+`backend/spikes/ai_spike.py` (see ADR-0001) embedded one made-up CV summary, with the query text below, and 5 made-up opportunities. It ran with Ollama and `qwen3-embedding:0.6b` on a laptop without a GPU.
+
+- 6 texts in 2.9 s, 1024 dimensions.
+- The opportunities that match the CV came first. A mechanical design internship and a pastry course came last.
+- Ollama uses a compressed copy of the model. Its vectors differ a little from the vectors of DeepInfra, so each environment makes its own vectors. Do not copy stored vectors between them.
+
 ## Results of this decision
 
 | Result | Action | Owner |
 |---|---|---|
 | The consent text names Voyage AI (NFR-06, FR-19). | Change the name to DeepInfra. Do this with ADR-0001. | Team |
-| No hosted test call yet (issue #25) | Send one embedding request to DeepInfra. Measure the time. | Ahmed Said |
+| No hosted test call yet (issue #25) | Send one embedding request to DeepInfra when staging is ready. Measure the time. | Ahmed Said (WBS-14.6) |
 | The baseline scores (WBS-15.4) use no real model yet. | Run the harness with this model on the labelled set. | Amr, Furkan |
 | If we change the model later | Calculate all stored embeddings again. The `embedding_model` column shows which model made each row. | Owner of the change |
 
