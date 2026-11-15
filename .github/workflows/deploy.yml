@@ -1,0 +1,79 @@
+name: Deploy
+
+# WBS-14.2: merges to dev deploy to staging, release merges to main deploy to production.
+# WBS-14.6 (Ahmed Said, Amr) connects the servers by setting the environment secrets
+# DEPLOY_HOST, DEPLOY_USER and DEPLOY_SSH_KEY. Until then every run is a dry run: images are
+# built and the deployment steps are printed, not executed.
+on:
+  push:
+    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        type: choice
+        options: [staging, production]
+        default: staging
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}
+    env:
+      REGISTRY: ghcr.io/${{ github.repository_owner }}
+      TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Build images
+        run: |
+          owner=$(echo "$REGISTRY" | tr '[:upper:]' '[:lower:]')
+          echo "OWNER_REGISTRY=$owner" >> "$GITHUB_ENV"
+          docker build -f backend/Dockerfile -t "$owner/synapseitu-backend:$TAG" .
+          docker build --build-arg NEXT_PUBLIC_API_BASE_URL="${{ vars.PUBLIC_API_BASE_URL || 'http://localhost:8000' }}" \
+            -f frontend/Dockerfile -t "$owner/synapseitu-frontend:$TAG" .
+
+      - name: Decide dry run
+        id: mode
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -z "$HOST" ]; then echo "dry_run=true" >> "$GITHUB_OUTPUT"; else echo "dry_run=false" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Push images
+        if: steps.mode.outputs.dry_run == 'false'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker push "$OWNER_REGISTRY/synapseitu-backend:$TAG"
+          docker push "$OWNER_REGISTRY/synapseitu-frontend:$TAG"
+
+      - name: Deploy over SSH
+        if: steps.mode.outputs.dry_run == 'false'
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          install -m 600 /dev/null key && printf '%s\n' "$KEY" > key
+          ssh -i key -o StrictHostKeyChecking=accept-new "$USER@$HOST" \
+            "cd /opt/synapseitu && TAG=$TAG docker compose pull && TAG=$TAG docker compose up -d && docker compose ps"
+          rm -f key
+
+      - name: Dry run summary
+        if: steps.mode.outputs.dry_run == 'true'
+        run: |
+          {
+            echo "### Deployment dry run"
+            echo "Environment: \`${{ github.event.inputs.environment || (github.ref == 'refs/heads/main' && 'production' || 'staging') }}\`"
+            echo "Images built: \`synapseitu-backend:$TAG\`, \`synapseitu-frontend:$TAG\`"
+            echo "Skipped push and SSH deploy: DEPLOY_HOST is not set for this environment (WBS-14.6)."
+          } >> "$GITHUB_STEP_SUMMARY"

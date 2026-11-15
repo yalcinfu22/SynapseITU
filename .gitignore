@@ -1,5 +1,23 @@
-# Python & Virtual Environments
+# Python
 .venv/
 **/__pycache__/
 **/*.py[cod]
 .pytest_cache/
+.ruff_cache/
+.hypothesis/
+backend/evaluation/.cache/
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets and local files (NFR-04: secrets stay outside the repository)
+.env
+.env.*
+!.env.example
+*.pem
+*.log
+*.pid

@@ -1,6 +1,20 @@
-# Python & Virtual Environments
-.venv/
-**/__pycache__/
+# Build context is the repository root, so Dockerfiles can copy tests/.
+.git
+.github
+docs
+**/.venv
+**/__pycache__
 **/*.py[cod]
-.pytest_cache/
-.git/
+**/.pytest_cache
+**/.ruff_cache
+**/.hypothesis
+backend/evaluation/.cache
+**/node_modules
+**/.next
+**/out
+**/coverage
+**/*.tsbuildinfo
+**/next-env.d.ts
+**/npm-debug.log*
+**/.env
+**/.env.*

@@ -1,0 +1,36 @@
+[project]
+name = "synapseitu-backend"
+version = "0.1.0"
+description = "SynapseITU backend (FastAPI)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "httpx",
+]
+
+[dependency-groups]
+test = [
+    "pytest",
+    "pytest-asyncio",
+]
+lint = [
+    "ruff",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["../tests/backend"]
+pythonpath = ["."]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "ASYNC"]
+ignore = ["E501"]  # line length is handled by `ruff format`
