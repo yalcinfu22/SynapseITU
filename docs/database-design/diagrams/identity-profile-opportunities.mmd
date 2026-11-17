@@ -1,0 +1,7 @@
+erDiagram
+    INSTITUTIONS ||--o{ OPPORTUNITIES : hosts
+    USERS ||--o| STUDENT_PROFILES : has
+    USERS o|--o{ OPPORTUNITIES : owns
+    OPPORTUNITIES ||--o{ OPPORTUNITY_REQUIREMENTS : specifies
+    STUDENT_PROFILES ||--o| CV_DOCUMENTS : uploads
+    CV_DOCUMENTS ||--o| CV_SUMMARIES : yields

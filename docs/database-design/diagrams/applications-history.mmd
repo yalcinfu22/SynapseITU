@@ -1,0 +1,5 @@
+erDiagram
+    USERS ||--o{ APPLICATIONS : submits
+    OPPORTUNITIES ||--o{ APPLICATIONS : receives
+    APPLICATIONS ||--o{ APPLICATION_EVENTS : records
+    USERS o|--o{ APPLICATION_EVENTS : performs
