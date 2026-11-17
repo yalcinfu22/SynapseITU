@@ -1,0 +1,7 @@
+erDiagram
+    GROUP_BOARDS ||--o{ POSTS : contains
+    POSTS o|--o{ POSTS : receives_replies
+    POSTS ||--o{ POST_VOTES : receives
+    USERS o|--o{ POSTS : authors
+    POSTS o|--o{ REPORTS : targets
+    USERS o|--o{ REPORTS : files

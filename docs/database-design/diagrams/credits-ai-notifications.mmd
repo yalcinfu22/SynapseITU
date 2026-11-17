@@ -1,0 +1,7 @@
+erDiagram
+    USERS o|--o| CREDIT_ACCOUNTS : holds
+    CREDIT_ACCOUNTS ||--o{ CREDIT_ENTRIES : posts
+    CREDIT_TRANSACTIONS ||--|{ CREDIT_ENTRIES : groups
+    POSTS ||--o{ QUESTION_BOOSTS : reserves
+    USERS o|--o{ AI_RUNS : requests
+    USERS ||--o{ NOTIFICATIONS : receives
