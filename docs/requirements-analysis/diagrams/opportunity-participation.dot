@@ -1,0 +1,20 @@
+digraph G {
+graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.65", ranksep="0.7", dpi=140];
+node [shape=box, style="rounded,filled", fillcolor="#edf3fa", color="#829ab4", fontname="DejaVu Sans", fontsize=14, margin="0.18,0.13"];
+edge [color="#53657b", fontcolor="#34445a", fontname="DejaVu Sans", fontsize=10, arrowsize=0.65];
+institution [label="Institution"];
+account [label="Account"];
+opportunity [label="Opportunity"];
+requirement [label="Requirement"];
+application [label="Application"];
+history [label="Application history entry"];
+institution -> opportunity [label="1 institution\n0..many opportunities"];
+account -> opportunity [label="0..1 owners\n0..many opportunities"];
+account -> application [label="1 student\n0..many applications"];
+opportunity -> requirement [label="1 opportunity\n0..many requirements"];
+opportunity -> application [label="1 opportunity\n0..many applications"];
+application -> history [label="1 application\n1..many history entries"];
+{rank=same; institution; account;}
+{rank=same; opportunity; application;}
+{rank=same; requirement; history;}
+}
