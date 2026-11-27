@@ -45,16 +45,11 @@ The labelled set is a JSON file:
 
 ## How to run it
 
-Run the commands in `backend/`. Keep the API key in a secret, not in a file.
+Run the command in `backend/`. The harness uses the embedding client of the product (`app.ai`), so it reads the same settings: `EMBEDDING_BASE_URL`, `EMBEDDING_MODEL` and `EMBEDDING_API_KEY` (see `backend/.env.example`). The defaults use Ollama on your computer.
 
 ```bash
-EVAL_EMBEDDER=openai \
-EVAL_EMBEDDING_BASE_URL=https://api.deepinfra.com/v1/openai \
-EVAL_EMBEDDING_MODEL=Qwen/Qwen3-Embedding-0.6B \
-EVAL_EMBEDDING_API_KEY=$KEY \
-  uv run --locked python -m evaluation.harness --data <labelled_set.json> --out report.json
+uv run --locked python -m evaluation.harness --data <labelled_set.json> --out report.json
 ```
 
-- `EVAL_EMBEDDER=openai` works with all providers that use the OpenAI format (DeepInfra, Ollama, vLLM). Use `voyage` for Voyage AI.
 - The harness keeps the embeddings in `backend/evaluation/.cache/`. It does not send the same text twice. Git ignores this folder.
 - For CI: keep this folder with `actions/cache`. Use the hash of the labelled set as the key.
