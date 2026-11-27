@@ -1,0 +1,9 @@
+stateDiagram-v2
+    [*] --> submitted
+    submitted --> under_review: Owner reviews
+    submitted --> accepted: Owner accepts
+    submitted --> rejected: Owner rejects
+    submitted --> withdrawn: Student withdraws
+    under_review --> accepted: Owner accepts
+    under_review --> rejected: Owner rejects
+    under_review --> withdrawn: Student withdraws
