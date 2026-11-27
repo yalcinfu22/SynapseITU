@@ -6,11 +6,13 @@ from pathlib import Path
 
 import pytest
 
+from app.ai import EmbeddingClient
+from app.ai.testing import FakeEmbedder
+from app.text import fold, tokenize
 from evaluation.baselines import Doc, EmbeddingBaseline, KeywordBaseline
 from evaluation.embedders import DiskCache
 from evaluation.harness import evaluate, load
 from evaluation.metrics import mrr_at_k, precision_at_k
-from evaluation.text import fold, tokenize
 
 
 class StubEmbedder:
@@ -60,13 +62,13 @@ async def test_embedding_baseline_ranks_by_similarity():
 
 
 async def test_disk_cache_sends_each_text_to_the_model_once(tmp_path: Path):
-    stub = StubEmbedder()
-    cache = DiskCache(stub, tmp_path / "c.json")
+    fake = FakeEmbedder()
+    cache = DiskCache(EmbeddingClient(fake), tmp_path / "c.json")
     await cache.embed(["vision", "vision"], "query")
     cache.save()
-    again = DiskCache(stub, tmp_path / "c.json")
+    again = DiskCache(EmbeddingClient(fake), tmp_path / "c.json")
     await again.embed(["vision"], "query")
-    assert stub.calls == 1
+    assert len(fake.calls) == 1
 
 
 async def test_only_candidates_count(tmp_path: Path):
