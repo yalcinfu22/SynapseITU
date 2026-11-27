@@ -1,0 +1,90 @@
+# WBS-14.6: run the whole app locally and on the demo computer with one command.
+#
+#   cp .env.example .env          # once; change values in .env if needed
+#   docker compose up --build     # start (Ctrl+C stops it)
+#   docker compose down           # stop and remove the containers, keep the data
+#   docker compose down -v        # also delete the data (database, Mailpit, Ollama models)
+#
+# Open: frontend http://localhost:3000, backend http://localhost:8000/docs,
+# e-mails caught in development http://localhost:8025.
+#
+# AI models: by default the backend uses Ollama on your computer (`ollama serve`).
+# To run Ollama in a container instead, start with `--profile ollama` and set
+# LLM_BASE_URL=http://ollama:11434/v1 in .env (see .env.example).
+
+name: synapseitu
+
+services:
+  db:
+    image: pgvector/pgvector:0.8.7-pg17
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-synapseitu}
+      POSTGRES_USER: ${POSTGRES_USER:-synapseitu}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-synapseitu-local}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-synapseitu}:${POSTGRES_PASSWORD:-synapseitu-local}@db:5432/${POSTGRES_DB:-synapseitu}
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      LLM_BASE_URL: ${LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    extra_hosts:
+      # Lets the container reach Ollama on the host; needed on Linux, harmless elsewhere.
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      db:
+        condition: service_healthy
+      mailpit:
+        condition: service_started
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        # The browser calls the backend, so this is the address seen from your computer.
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:${BACKEND_PORT:-8000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  mailpit:
+    image: axllent/mailpit:v1.33.1
+    ports:
+      - "${MAILPIT_WEB_PORT:-8025}:8025"
+    volumes:
+      - mail-data:/data
+    environment:
+      MP_DATABASE: /data/mailpit.db
+
+  ollama:
+    image: ollama/ollama:0.40.16
+    profiles: ["ollama"]
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+
+volumes:
+  db-data:
+  mail-data:
+  ollama-models:

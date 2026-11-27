@@ -142,6 +142,32 @@ After pulling someone else's dependency changes, the normal `uv run --locked ...
 
 When your task intentionally adds a dependency, use `uv add PACKAGE` (or `uv add --group test PACKAGE` for a test dependency), replacing `PACKAGE` with the actual package name. If you edit dependencies in `pyproject.toml` manually, run `uv lock`. Review and commit both files when they change, then rerun the tests. Do not edit `uv.lock` by hand.
 
+## Run the whole app with Docker Compose
+
+`compose.yml` starts the backend, the frontend, PostgreSQL with pgvector and Mailpit (it catches the e-mails the app sends in development). We use it for development and for the demo (WBS-14.6). Start Docker Desktop first. From the repository root:
+
+```bash
+cp .env.example .env          # once; all values have defaults
+docker compose up --build -d  # build and start in the background
+docker compose ps             # all services should be "healthy"
+docker compose logs -f backend
+docker compose down           # stop; the data stays
+docker compose down -v        # stop and delete the data
+```
+
+| Service | Address on your computer |
+| --- | --- |
+| Frontend | http://localhost:3000 |
+| Backend API docs | http://localhost:8000/docs |
+| Mailpit (caught e-mails) | http://localhost:8025 |
+| PostgreSQL | `localhost:5432`, user and password from `.env` |
+
+**AI models.** The backend uses Ollama on your computer by default: install it from ollama.com, run `ollama serve`, then `ollama pull qwen3.5:4b-q4_K_M` and `ollama pull qwen3-embedding:0.6b`. To run Ollama in a container instead, set `LLM_BASE_URL=http://ollama:11434/v1` in `.env` and start with `docker compose --profile ollama up -d`. Unit tests never need Ollama.
+
+To run Python inside the backend container, use its environment: `docker compose exec backend /app/backend/.venv/bin/python`.
+
+If a port is already in use, change it in `.env` (for example `BACKEND_PORT=8001`).
+
 ## Local Docker check: verify the shared test environment
 
 Install [Docker Desktop](https://docs.docker.com/get-started/get-docker/), or Docker Engine on Linux. Start Docker before this step; on Windows, use Linux containers.
