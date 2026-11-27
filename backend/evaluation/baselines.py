@@ -10,8 +10,8 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 
-from evaluation.embedders import Embedder, cosine
-from evaluation.text import tokenize
+from app.text import tokenize
+from evaluation.embedders import cosine
 
 
 @dataclass(frozen=True)
@@ -64,7 +64,7 @@ class EmbeddingBaseline:
 
     name = "embedding"
 
-    def __init__(self, embedder: Embedder) -> None:
+    def __init__(self, embedder) -> None:  # anything with embed(texts, kind)
         self.embedder = embedder
 
     async def rank(self, query: str, candidates: Sequence[Doc]) -> list[str]:

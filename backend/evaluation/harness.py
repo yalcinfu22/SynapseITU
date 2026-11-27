@@ -11,10 +11,9 @@ Labelled set format (JSON) — see docs/evaluation-harness.md::
                     "candidates": ["doc ids: the student's eligible pool"],   # optional
                     "relevant":   ["doc ids"]}]}
 
-Usage::
+Usage (settings as in backend/.env.example)::
 
-    EVAL_EMBEDDER=voyage EVAL_EMBEDDING_MODEL=voyage-4-lite EVAL_EMBEDDING_API_KEY=... \
-        uv run python -m evaluation.harness --data path/to/labelled_set.json --out report.json
+    uv run python -m evaluation.harness --data path/to/labelled_set.json --out report.json
 """
 
 import argparse
@@ -22,8 +21,9 @@ import asyncio
 import json
 from pathlib import Path
 
+from app.ai import build_embedding_client
 from evaluation.baselines import Doc, EmbeddingBaseline, KeywordBaseline, System
-from evaluation.embedders import DiskCache, from_env
+from evaluation.embedders import DiskCache
 from evaluation.metrics import mean, mrr_at_k, precision_at_k
 
 HERE = Path(__file__).parent
@@ -91,7 +91,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, help="write the JSON report here")
     args = parser.parse_args(argv)
 
-    embedder = DiskCache(from_env(), args.cache)
+    embedder = DiskCache(build_embedding_client(), args.cache)
     docs, queries = load(args.data)
     report = asyncio.run(evaluate(docs, queries, [KeywordBaseline(), EmbeddingBaseline(embedder)]))
     embedder.save()

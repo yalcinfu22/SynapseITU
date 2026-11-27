@@ -12,6 +12,7 @@ dependencies = [
 
 [dependency-groups]
 test = [
+    "httpx2>=2.16.2",
     "pytest",
     "pytest-asyncio",
 ]
