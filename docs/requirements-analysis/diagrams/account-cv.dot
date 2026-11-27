@@ -1,0 +1,16 @@
+digraph G {
+graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.65", ranksep="0.7", dpi=140];
+node [shape=box, style="rounded,filled", fillcolor="#edf3fa", color="#829ab4", fontname="DejaVu Sans", fontsize=14, margin="0.18,0.13"];
+edge [color="#53657b", fontcolor="#34445a", fontname="DejaVu Sans", fontsize=10, arrowsize=0.65];
+account [label="Account"];
+profile [label="Student profile"];
+cv [label="Current CV"];
+summary [label="CV summary"];
+adaptation [label="CV adaptation"];
+suggestion [label="Suggestion"];
+account -> profile [label="1 account\n0..1 profiles"];
+profile -> cv [label="1 profile\n0..1 current CVs"];
+cv -> summary [label="1 CV\n0..1 summaries"];
+cv -> adaptation [label="1 CV\n0..many adaptations"];
+adaptation -> suggestion [label="1 adaptation\n0..many suggestions"];
+}

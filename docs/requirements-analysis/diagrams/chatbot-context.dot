@@ -1,0 +1,17 @@
+digraph G {
+graph [label="Each citation has exactly one target. Each target can have many citations.", labelloc=b, fontname="DejaVu Sans", fontsize=11];
+graph [rankdir=TB, bgcolor="white", pad="0.35", nodesep="0.65", ranksep="0.7", dpi=140];
+node [shape=box, style="rounded,filled", fillcolor="#edf3fa", color="#829ab4", fontname="DejaVu Sans", fontsize=14, margin="0.18,0.13"];
+edge [color="#53657b", fontcolor="#34445a", fontname="DejaVu Sans", fontsize=10, arrowsize=0.65];
+student [label="Student account"];
+conversation [label="Conversation"];
+message [label="Message"];
+citation [label="Citation"];
+opportunity [label="Opportunity"];
+record [label="University record"];
+student -> conversation [label="1 student\n0..many conversations"];
+conversation -> message [label="1 conversation\n0..many messages"];
+message -> citation [label="1 message\n0..many citations"];
+citation -> opportunity [label="0..1 opportunity target"];
+citation -> record [label="0..1 university record target"];
+}
